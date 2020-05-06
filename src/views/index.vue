@@ -1,0 +1,63 @@
+<template>
+    <div id="index">
+        <div class="touch-stage-container">
+            <div class="menu-controller-container cursor__pointer user-select-disabled" @click='menuControll = true'>
+                <span class="menu-part part-left">Me</span><!-- 
+                 --><span class="menu-part part-right">nu</span>
+            </div>
+            <touch-canvas></touch-canvas>
+            <touch-menu v-if='menuControll' @closeMenu='menuControll = false'></touch-menu>
+            <touch-notify @openMenu='menuControll = true'></touch-notify>
+        </div>
+    </div>
+</template>
+
+<script>
+    import touchCanvas from './piece/canvas'
+    import touchMenu from './piece/menu'
+    import touchNotify from './piece/notify'
+
+    export default {
+        data () {
+            return {
+                menuControll: false
+            }
+        },
+        components: {
+            touchCanvas,
+            touchMenu,
+            touchNotify
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .touch-stage-container
+        position relative
+        .menu-controller-container
+            position absolute
+            top 0
+            left 50%
+            left 50vw
+            z-index 11
+            font-size 20px
+            color #fff
+            transform translateX(-50%)
+            .menu-part
+                display inline-block
+                width 4ch
+                padding 5px 0
+                border-bottom 3px solid #fff
+                color #fff
+                &.part-left
+                    padding-right 1px
+                    color #333
+                    text-align right
+                    border-color #333
+                    border-left 3px solid #333
+                    border-bottom-left-radius 10px
+                &.part-right
+                    padding-left 1px
+                    text-align left
+                    border-right 3px solid #fff
+</style>

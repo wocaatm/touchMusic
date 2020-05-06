@@ -1,0 +1,72 @@
+import * as types from './types'
+import Api from '../api/index'
+import { archive } from '../lib/util'
+
+/* 获取piece模块的pieceList */
+export const getPieceList = ({ commit }) => {
+    return Api.getNoteList()
+            .then(function (response) {
+                commit(types.INIT_PIECE_LIST, response.data)
+            })
+}
+
+/* 用户注册 */
+export const userReg = ({ dispatch, commit }, data) => {
+    return Api.userReg(data)
+            .then(response => {
+                let result = response.data
+                if (result.errno) {
+                    return result.errorMsg
+                } else {
+                    commit(types.INIT_USER_TOKEN, result.token)
+                    return true
+                }
+            })
+}
+
+/* 获取登录用户的信息 */
+export const authInfo = ({ commit }) => {
+    return Api.authInfo()
+            .then(response => {
+                let result = response.data
+                if (result.errno) {
+                    return result.errorMsg
+                } else {
+                    commit(types.INIT_USER_AUTHINFO, result.authInfo)
+                    return true
+                }
+            })
+}
+
+/* 退出登录 */
+export const logout = ({ commit }) => {
+    return new Promise(function (reslove, reject) {
+        commit('logout')
+        reslove()
+    })
+}
+
+/* 用户登录 */
+export const login = ({ dispatch, commit }, data) => {
+    return Api.userLogin(data)
+            .then(response => {
+                let result = response.data
+                if (result.errno) {
+                    return result.errorMsg
+                } else {
+                    commit(types.INIT_USER_TOKEN, result.token)
+                    return true
+                }
+            })
+}
+
+/* 获取未读信息数量 */
+export const getNotReadMsgCount = ({ commit }) => {
+    return Api.getMessageCount()
+            .then(response => {
+                let result = response.data
+                if (!result.errno) {
+                    commit(types.SWITCH_MESSAGE_COUNT, result.count)
+                }
+            })
+}

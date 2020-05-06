@@ -1,0 +1,114 @@
+/**
+ * Created by lc on 2017/5/23.
+ */
+import { _random , plusMinus, assignObj } from './util'
+
+function Canvas(ref){
+    this.pixi = global.PIXI
+
+    this.ref = ref
+
+    this.config = {
+        width: window.innerWidth,
+        height: window.innerHeight - 60
+    }
+
+    this.speed = {vx : 0.1, vy : 0.1}
+
+    this.sprites = []
+
+    this.spriteNum = 12
+
+    if (!this.pixi.loader.resources['note0']) {
+        this.loadTexture()
+    } else {
+        this.init()
+    }
+}
+
+/*加载Texture*/
+Canvas.prototype.loadTexture = function (){
+    this.pixi.loader
+        .add('note0', '/static/images/note.svg')
+        .add('note1', '/static/images/note1.svg')
+        .add('note2', '/static/images/note2.svg')
+        .add('note3', '/static/images/note3.svg')
+        .add('note4', '/static/images/note4.svg')
+        .add('note5', '/static/images/note5.svg')
+        .add('note6', '/static/images/note6.svg')
+        .add('note7', '/static/images/note7.svg')
+        .load(() => {
+            this.init()
+        })
+}
+
+/**
+ * 各种初始化操作
+ */
+Canvas.prototype.init = function(){
+    /* 创建renderer */
+    this.renderer = this.pixi.autoDetectRenderer(this.config.width, this.config.height, {transparent: true});
+    /* 插入dom */
+    this.ref.appendChild(this.renderer.view);
+    /* 初始化container */
+    this.stage = new this.pixi.Container()
+
+    this.initSprite()
+    
+    this.renderer.render(this.stage)
+
+    this.update()
+}
+
+/**
+ * 初始化sprite
+ */
+Canvas.prototype.initSprite = function () {
+    for (let i = 0; i < this.spriteNum ; i++) {
+        let type = _random(0,7)
+        let sprite = new this.pixi.Sprite(this.pixi.loader.resources['note' + type].texture)
+        let scale = _random(5, 8) / 10
+        let alpha = _random(3, 10) / 10
+        sprite.anchor.set(0.5,0.5)
+        sprite.scale.set(scale)
+        sprite.alpha = alpha
+        sprite.tint = 0x969ca8
+        let options = {
+            x: Math.random() * this.config.width,
+            y: Math.random() * this.config.height,
+            vx: _random(20, 50) / 100,
+            vy: _random(20, 50) / 100
+        }
+        Object.assign(sprite, options)
+        this.sprites.push(sprite)
+        this.stage.addChild(sprite)
+    }
+}
+
+/**
+ * updateFrame 事件
+ */
+Canvas.prototype.update = function (){
+    this.frame = requestAnimationFrame(this.update.bind(this))
+
+    this.sprites.forEach((sprite, i) =>{
+        let { vx, vy } = sprite
+        let vectory = 1
+        if (i > Math.floor(this.spriteNum / 2)) vectory = -1
+        sprite.x += vx * vectory
+        sprite.y += vy * vectory
+    })
+    
+    this.renderer.render(this.stage)
+}
+
+/**
+ * 销毁pixi产生的变量
+ */
+Canvas.prototype.destroy = function () {
+    cancelAnimationFrame(this.frame)
+    this.frame = null
+    this.renderer.destroy(true)
+}
+
+export default Canvas

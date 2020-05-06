@@ -1,0 +1,262 @@
+import Timeago from 'timeago.js'
+
+import decodeArrayBuffer from './base64-binary'
+
+/**
+    @description 返回包括min,max之间的一个整数
+    @param min  最小值
+    @param max  最大值
+    @param now  返回值不能是now
+    @return 随机值
+*/
+export function _random(min, max, now) {
+    if (max == null) {
+      max = min;
+      min = 0;
+    }
+    var result = min + Math.floor(Math.random() * (max - min + 1))
+    if (now) {
+        while (result == now) {
+            result = min + Math.floor(Math.random() * (max - min + 1))
+        }
+    }
+    return result
+}
+
+
+/**
+    @description 正负 1 的随机获取
+    @return -1 or 1
+*/
+export function plusMinus(){
+    return _random(0,1)<1?-1:1;
+}
+
+/**
+ * @description 判断是否是普通的javascript函数
+ * @param       mixed        obj [判断的对象]
+ * @return      {Boolean}           [返回true or false]
+ */
+export function isPlainObject (obj) {
+    return obj && typeof obj === 'object' && Object.getPrototypeOf(obj) === Object.prototype
+}
+
+/**
+ * @description 让plain Obj 能够for of 循环 避免查找原型链上的属性
+ * @param       {[Object]}        obj [一个 plain Object]
+ * @return      {[Object]}        返回能够for of 遍历的对象
+ */
+export function iteratorObj (obj) {
+    obj[Symbol.iterator] = function* () {
+        for (let k of Object.keys(obj)) {
+            yield [k, obj[k]]
+        }
+    }
+
+    return obj
+}
+
+/**
+    @description 覆盖属性(target有的)还是生成新的对象
+    @param target 要被覆盖的对象
+    @param options 要覆盖的选项
+    @newFlag 生成新的对象还是覆盖对象 true是新生成一个对象
+    @reurn Object
+*/
+export function assignObj(target, options, newFlag) {
+    var options = iteratorObj(options)
+
+    for (var [k, v] of options) {
+        if (target[k] === undefined) continue
+        if (isPlainObject(v) && isPlainObject(target[k])) {
+            assignObj(target[k], options[k])
+        } else if (!isPlainObject(v) && !isPlainObject(target[k])) {
+            target[k] = v
+        }
+    }
+
+    if (newFlag) {
+        return target
+    }
+}
+
+//对象浅拷贝 不能存在循环引用
+export function cloneObj (obj){
+    var str, newobj = obj.constructor === Array ? [] : {};
+    if(typeof obj !== 'object'){
+        return;
+    } else if(window.JSON){
+        str = JSON.stringify(obj), //系列化对象
+        newobj = JSON.parse(str); //还原
+    } else {
+        for(var i in obj){
+            newobj[i] = typeof obj[i] === 'object' ? 
+            cloneObj(obj[i]) : obj[i]; 
+        }
+    }
+    return newobj;
+}
+
+
+/**
+ *   对Date的扩展，将 Date 转化为指定格式的String
+ *   月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符，
+ *   年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字)
+ *   例子：
+ *   (new Date()).Format('yyyy-MM-dd hh:mm:ss.S') ==> 2006-07-02 08:09:04.423
+ *   (new Date()).Format('yyyy-M-d h:m:s.S')      ==> 2006-7-2 8:9:4.18
+ */
+export function fmtDate(date, fmt){ // author: meizz
+    var o = {
+        'M+': date.getMonth() + 1, // 月份
+        'd+': date.getDate(), // 日
+        'h+': date.getHours(), // 小时
+        'm+': date.getMinutes(), // 分
+        's+': date.getSeconds(), // 秒
+        'q+': Math.floor((date.getMonth() + 3) / 3), // 季度
+        'S': date.getMilliseconds() // 毫秒
+    };
+    if (/(y+)/.test(fmt)) {
+        fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
+    }
+    for (var k in o) {
+        if (new RegExp('(' + k + ')').test(fmt)) {
+            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)));
+        }
+    }
+    return fmt;
+};
+
+
+/**
+ * 调用Timeago库显示到现在的时间
+ */
+export function MillisecondToDate (time) {
+    var str = '';
+    if (time !== null && time !== '') {
+        let timeagoInstance = new Timeago();
+        str = timeagoInstance.format(time, 'zh_CN');
+    }
+    return str;
+};
+
+/**
+ * 格式化日期或时间
+ * @param {string} time 需要格式化的时间
+ * @param {格式化时间或者显示时间跨度} 
+ */
+export function getLastTimeStr (time, type) {
+    if (type === true) {
+        return MillisecondToDate(time);
+    } else {
+        var timeFormat = type ? type : 'yyyy-MM-dd';
+        return fmtDate(new Date(time), timeFormat);
+    }
+};
+
+
+/*秒数转成时间格式*/
+export function timeFormat (time) {
+    var tempMin = parseInt(time / 60);
+    var tempSec = parseInt(time % 60);
+    var curMin = tempMin < 10 ? ('0' + tempMin) : tempMin;
+    var curSec = tempSec < 10 ? ('0' + tempSec) : tempSec;
+    return curMin + ':' + curSec;
+}
+
+/**
+ * DOM选择器
+ * @param {string} element选择器
+ * @param {DOM} context 上下文
+ * @param {Boolean} flag 选择数组还是单个元素
+ */
+export function $ (ele, context, flag) {
+    var flag = flag || false
+    var context = context ? context : document;
+    return flag ? context.querySelectorAll(ele) : context.querySelector(ele)
+}
+
+/**
+ * @description {{获取元素距浏览器顶部或左边距离}}
+ * @param       {DOMElement}        ele       [dom元素]
+ * @param       {String}        direction [top or left]
+ * @return      {Number}                  [距离]
+ */
+export function offsetDistance (ele, direction) {
+    var distance = ele[direction]
+    while (ele.offsetParent) {
+        ele = ele.offsetParent
+        distance += ele[direction]
+    }
+    return distance
+}
+
+/**
+ * @description {{解码音频文件}}
+ * @param       {Array}        note [base64 音频数组]
+ * @return      {Array}             [返回Arraybuffer 数组]
+ */
+export function decodeNote (note) {
+    return Object.entries(note).map(([k, v]) => {
+        return decodeArrayBuffer(v)
+    })
+}
+
+/**
+ * @description {{获取window窗口}}
+ * @return      {Number}        [滚动高度]
+ */
+export function scrollTop () {
+    return document.body.scrollTop || document.documentElement.scrollTop
+}
+
+/**
+ * @description {{sessionStorage 存取信息}}
+ * @param       {Object}        info   [存的信息]
+ * @param       {Boolean}        decode [取信息]
+ * @return      {Object}               [取信息的对象]
+ */
+export function sessionStore (key, value, clear) {
+    if (clear) {
+        sessionStorage.removeItem(key)
+    } else {
+        if (value) {
+            sessionStorage.setItem(key, JSON.stringify(value))
+        } else {
+            return JSON.parse(sessionStorage.getItem(key))
+        }
+    }
+}
+
+/**
+ * @description {{检测两个对象内部属性是否相同，绕过引用地址}}
+ * @param       {Object}        target  [目标对象]
+ * @param       {Object}        comparison [对比对象]
+ * @return      {Boolean}             [true or false]
+ */
+export function equalObjectProperty (target, comparison) {
+    let equal = true,
+        targetPropertyCount = 0,
+        comparisonPropertyCount = 0,
+        iteratorTarget = iteratorObj(target),
+        iteratorComparison = iteratorObj(comparison)
+
+    for (let [k, v] of iteratorComparison) {
+        if (iteratorTarget[k] !== v) {
+            equal = false
+            break
+        }
+        comparisonPropertyCount++
+    }
+
+    if (equal) {
+        for (let p of iteratorTarget) {
+            targetPropertyCount++
+        }
+        if (targetPropertyCount !== comparisonPropertyCount) {
+            equal = false
+        }
+    }
+
+    return equal
+}

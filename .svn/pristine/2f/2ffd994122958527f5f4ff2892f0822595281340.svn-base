@@ -1,0 +1,150 @@
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+
+const index = resolve => {
+    require.ensure(['./views/index'], () => {
+        resolve(require('./views/index'))
+    })
+}
+
+const login = resolve => {
+    require.ensure(['./views/login'], () => {
+        resolve(require('./views/login'))
+    })
+}
+
+const start = resolve => {
+    require.ensure(['./views/start'], () => {
+        resolve(require('./views/start'))
+    })
+}
+
+const articles = resolve => {
+    require.ensure(['./views/articles'], () => {
+        resolve(require('./views/articles'))
+    })
+}
+
+const articleDetail = resolve => {
+    require.ensure(['./views/articleDetail'], () => {
+        resolve(require('./views/articleDetail'))
+    })
+}
+
+const musics = resolve => {
+    require.ensure(['./views/musics'], () => {
+        resolve(require('./views/musics'))
+    })
+}
+
+const musicDetail = resolve => {
+    require.ensure(['./views/musicDetail'], () => {
+        resolve(require('./views/musicDetail'))
+    })
+}
+
+const reg = resolve => {
+    require.ensure(['./views/reg'], () => {
+        resolve(require('./views/reg'))
+    })
+}
+
+const userIndex = resolve => {
+    require.ensure(['./views/user/index'], () => {
+        resolve(require('./views/user/index'))
+    })
+}
+
+const userBaseInfo = resolve => {
+    require.ensure(['./views/user/baseinfo'], () => {
+        resolve(require('./views/user/baseinfo'))
+    })
+}
+
+const userCollect = resolve => {
+    require.ensure(['./views/user/collect'], () => {
+        resolve(require('./views/user/collect'))
+    })
+}
+
+const userMessage = resolve => {
+    require.ensure(['./views/user/message'], () => {
+        resolve(require('./views/user/message'))
+    })
+}
+
+Vue.use(VueRouter)
+
+var routers = new VueRouter({
+    mode: 'history',
+    routes: [
+        {
+            path: '/',
+            component: start
+        },
+        {
+            path: '/index',
+            component: index
+        },
+        {
+            path: '/reg',
+            component: reg
+        },
+        {
+            path: '/login',
+            component: login
+        },
+        {
+            path: '/articles',
+            component: articles
+        },
+        {
+            path: '/musics',
+            component: musics
+        },
+        {
+            path: '/article/:id',
+            name: 'article',
+            component: articleDetail
+        },
+        {
+            path: '/music/:id',
+            name: 'music',
+            component: musicDetail
+        },
+        {
+            path: '/user',
+            component: userIndex,
+            meta: { requiresAuth: true },
+            children: [
+                {
+                    name: 'userDefault',
+                    path: '',
+                    component: userBaseInfo
+                },
+                {
+                    path: 'collect',
+                    component: userCollect
+                },
+                {
+                    path: 'message',
+                    component: userMessage
+                }
+            ]
+        }
+    ]
+})
+
+routers.beforeEach((to, from, next) => {
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        if (!localStorage.getItem('user') || !localStorage.getItem('authInfo')) {
+            next({path: '/login', query: {redirect: to.fullPath}})
+        } else {
+            next()
+        }
+    } else {
+        next()
+    }
+})
+
+export default routers

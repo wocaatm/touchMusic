@@ -1,0 +1,123 @@
+<template>
+    <div class="login-container">
+        <touch-header></touch-header>
+        <div class="login-canvas" ref='loginCanvas'>
+            <div class="login-form">
+                <div class="row">
+                    <input type="text" class="row-input" v-model='user.email' placeholder="邮 箱">
+                </div>
+                <div class="row">
+                    <input type="password" class="row-input" v-model='user.password' placeholder="密 码">
+                </div>
+                <div class="login-submit">
+                    <span class="login-btn" @click='login()' :class='{active:loginStatus}'>登录</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import '../lib/pixi.min'
+    import touchHeader from '../components/header.vue'
+    import Canvas from '../lib/login-reg-canvas'
+    import { mapGetters } from 'vuex'
+
+    export default {
+        data () {
+            return {
+                user: {
+                    email: '',
+                    password: ''
+                },
+                canvas: null,
+                redirect: ''
+            }
+        },
+        computed: {
+            loginStatus () {
+                return this.user.password.length >= 6 && this.user.password.length <= 16 && /^(\w)+(\.\w+)*@(\w)+((\.\w+)+)$/.test(this.user.email)
+            },
+            ...mapGetters({
+                auth: 'getAuthInfo',
+                token: 'getToken'
+            })
+        },
+        mounted () {
+            if (this.auth && this.token) {
+                this.$router.push({name: 'userDefault'})
+                return
+            }
+            if (this.$route.query) this.redirect = this.$route.query.redirect
+            /* eslint-disable no-new */
+            this.canvas = new Canvas(this.$refs.loginCanvas)
+        },
+        methods: {
+            async login () {
+                if (this.loginStatus) {
+                    let loginResult = await this.$store.dispatch('login', this.user)
+                    if (loginResult === true) {
+                        let authInfo = await this.$store.dispatch('authInfo')
+                        if (authInfo) {
+                            let path = this.redirect || '/user'
+                            this.$router.push({path})
+                        }
+                    } else {
+                        alert(loginResult)
+                    }
+                }
+            }
+        },
+        components: {
+            touchHeader
+        },
+        beforeRouteLeave (to, from, next) {
+            if (this.canvas) this.canvas.destroy()
+            next()
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .login-container
+        overflow hidden
+        .login-canvas
+            position relative
+            background #38404e url('/static/images/tile.png') 0 0 repeat
+            background-attachment fixed
+            .login-form
+                position absolute
+                top 50%
+                left 50%
+                transform translate(-50%,-50%)
+                background #fff
+                border-radius 8px
+                box-shadow 10px 10px 10px rgba(0,0,0,.6)
+                padding 30px 60px
+                .row
+                    width 360px
+                    text-align center
+                    margin-bottom 40px
+                    .row-input
+                        width 260px
+                        padding 6px 0
+                        border-bottom 2px solid #000
+                        text-align center
+                        font-size 16px
+                        background transparent
+                .login-submit
+                    text-align center
+                    .login-btn
+                        display inline-block
+                        width 120px
+                        text-align center
+                        line-height 40px
+                        font-size 16px
+                        color #f5f5f5
+                        border-radius 5px
+                        background #999
+                        transition all 0.4s
+                        cursor pointer
+                        &.active
+                            background #59bfff
+</style>

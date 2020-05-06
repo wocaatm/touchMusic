@@ -1,0 +1,263 @@
+<template>
+    <div id="music-detail">
+        <touch-header :tab='1'></touch-header>
+        <div class="scroll-fix-wrapper">
+            <div class="main-container container clearfix">
+                <div class="music-contianer fl">
+                    <div v-if='musicInfo && musicInfo.name'>
+                        <div class="music-content-container">
+                            <h3 class="title">{{musicInfo.name}}</h3>
+                            <div class="info-container">
+                                <div class="info-nickname">作者：{{musicInfo.uid.nickname}}</div>
+                                <div class="info-created">发表于：{{musicInfo.created | getTimeStr}}</div>
+                                <div class="info-collect" @click='switchCollect()'>
+                                    <span v-if='!collect'><i class="fa fa-heart-o icon"></i>收藏</span>
+                                    <span v-else><i class="fa fa-heart icon"></i>已收藏</span>
+                                </div>
+                            </div>
+                            <div class="init-player-container" v-if='!complete'>
+                                <div class="init-player-info">
+                                    <i class="fa fa-spin fa-cog"></i>
+                                    <p class="init-player-title">初始化播放器...</p>
+                                </div>
+                            </div>
+                            <div class="player-container" ref='player'></div>
+                            <div class="wangEditor-container">
+                                <div class="wangEditor-txt" v-html='musicInfo.content'></div>
+                            </div>
+                        </div>
+                        <div class="comment-select-container clearfix">
+                            <span>评论来源：</span>
+                            <label class="radio-container" for="comment-self" @click='commentType = 0'>
+                                <input type="radio" class='radio-input' id="comment-self" checked="true" name='comment'>
+                                <span class="radio-core"></span>
+                                <span class="radio-text">本站评论</span>
+                            </label>
+                            <label class="radio-container" for="comment-netease" @click='commentType = 1'>
+                                <input type="radio" class='radio-input' id="comment-netease" name='comment'>
+                                <span class="radio-core"></span>
+                                <span class="radio-text">网易精彩评论</span>
+                            </label>
+                        </div>
+                        <touch-comment :id='mid' :module="0" v-if='mid && !commentType'></touch-comment>
+                        <touch-net-comment :id='musicId' v-if='musicId && commentType'></touch-net-comment>
+                    </div>
+                    <div v-if='complete && !musicInfo' class="not-exist-music">
+                        <i class="fa fa-file-o fa-4x"></i>
+                        <p class="not-exist-tip">该音乐主题不存在~</p>
+                    </div>
+                </div>
+                <div class="slider-container fr">
+                    <touch-slider :type='0'></touch-slider>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import touchHeader from '../components/header'
+    import touchSlider from '../components/slider'
+    import touchComment from '../components/comment'
+    import touchNetComment from '../components/netEaseComment'
+    import Api from '../api/index'
+    import touchPlayer from '../lib/touchPlayer'
+    import { alert } from '../lib/dialog'
+    import '../assets/css/player.css'
+
+    export default {
+        data () {
+            return {
+                topicId: '',
+                topicInfo: '',
+                mid: '',
+                musicId: '',
+                commentType: 0,
+                complete: false,
+                setTimeMask: ''
+            }
+        },
+        computed: {
+            musicInfo () {
+                return this.topicInfo.topic
+            },
+            collect () {
+                return this.topicInfo.collect
+            },
+            musics () {
+                return this.topicInfo.musics
+            },
+            musicIds () {
+                let ids = ''
+                let length = this.musics.length
+                this.musics.forEach((item, index) => {
+                    ids += item.musicId
+                    if (index !== length - 1) ids += ','
+                })
+                return ids
+            },
+            authInfo () {
+                return this.$store.getters.getAuthInfo
+            }
+        },
+        mounted () {
+            this.initData()
+        },
+        methods: {
+            async initData () {
+                try {
+                    this.topicId = this.$route.params.id
+                    let response = await Api.getMusicDetail(this.topicId)
+                    let result = response.data
+                    this.topicInfo = result
+                    this.mid = this.musics[0]._id
+                    this.musicId = this.musics[0].musicId
+                    let {data} = await Api.getMusicUrl(this.musicIds)
+                    this.initPlayer(data)
+                } catch (err) {
+                    this.complete = true
+                    console.log(err)
+                }
+            },
+            initPlayer (musics) {
+                let musicInfos = this.musics.map(item => {
+                    let url, sliceindex
+                    musics.forEach((music, index) => {
+                        if (music.musicId === item.musicId) {
+                            url = music.url
+                            sliceindex = index
+                        }
+                    })
+                    musics.splice(sliceindex, 1)
+                    return {
+                        id: item.musicId,
+                        src: url,
+                        name: item.name,
+                        artist: item.artist,
+                        thumb: item.thumb
+                    }
+                })
+                this.complete = true
+                this.setTimeMask = touchPlayer({
+                    musics: musicInfos,
+                    title: this.musicInfo.name,
+                    container: this.$refs.player,
+                    callback: {
+                        audioSwitch: (index) => {
+                            this.mid = this.musics[index]._id
+                            this.musicId = this.musics[index].musicId
+                        }
+                    }
+                })
+            },
+            switchMusicTopic () {
+                /* todo 判断是否存在 */
+                this.$refs.player.removeChild(this.$refs.player.childNodes[0])
+                this.complete = false
+                this.clearTimeMask()
+                this.initData()
+            },
+            switchCollect () {
+                if (!this.authInfo) {
+                    alert('请先登录')
+                    return
+                }
+                Api.switchCollect({type: 0, id: this.topicId})
+                    .then(response => {
+                        let result = response.data
+                        let collect = result.action === 'collect'
+                        this.topicInfo = Object.assign({}, this.topicInfo, {collect})
+                        if (collect) {
+                            /* 弹层插件 */
+                            alert('收藏成功')
+                        } else {
+                            alert('取消收藏成功')
+                        }
+                    })
+                    .catch(() => {})
+            },
+            clearTimeMask () {
+                if (this.setTimeMask) {
+                    this.setTimeMask()
+                    this.setTimeMask = null
+                }
+            }
+        },
+        components: {
+            touchHeader,
+            touchSlider,
+            touchComment,
+            touchNetComment
+        },
+        beforeRouteLeave (to, from, next) {
+            /* 清除定时更新歌曲url */
+            this.clearTimeMask()
+            next()
+        },
+        watch: {
+            '$route' () {
+                this.switchMusicTopic()
+            }
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .main-container
+        margin-top 60px
+    .music-contianer
+        width 840px
+        .title
+            padding 10px 0
+            font-size 28px
+            text-align center
+        .info-container
+            display flex
+            justify-content space-around
+            align-items center
+            margin-top 10px
+            padding 0 15px
+            font-size 16px
+            line-height 60px
+            .icon
+                margin-right 8px
+            .info-collect
+                width 100px
+                color #de4c4c
+        .init-player-container
+            position relative
+            height 476px
+            margin 0 15px
+            border 1px solid #ccc
+            border-radius 6px
+            text-align center
+            .init-player-info
+                position absolute
+                top 50%
+                left 50%
+                transform translate(-50%, -50%)
+                .fa
+                    font-size 80px
+                .init-player-title
+                    margin-top 10px
+                    font-size 20px
+        .wangEditor-container
+            border none
+        .comment-select-container
+            margin-top 40px
+            padding 0 15px
+            font-size 16px
+            .radio-container
+                margin-right 20px
+        .not-exist-music
+            margin-top 200px
+            text-align center
+            font-size 16px
+            .fa
+                color #ccc
+            .not-exist-tip
+                margin-top 20px
+                font-weight 500
+    .slider-container
+        width 320px
+</style>

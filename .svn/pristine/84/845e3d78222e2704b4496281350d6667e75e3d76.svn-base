@@ -1,0 +1,106 @@
+import axios from 'axios'
+import { alert } from '../lib/dialog'
+
+const ROOT = (process.env.NODE_ENV === 'production')
+    ? 'http://api.journeynes.com'
+    :'http://localhost:8001'
+
+function config(query) {
+    const config = {
+        baseURL: ROOT,
+        transformResponse: [function (data) {
+            let result = JSON.parse(data)
+            if (result.errno) alert(result.errorMsg)
+            return result
+        }]
+    }
+    if(localStorage.getItem('user') && !config.headers) {
+        config.headers = {Authorization: 'Bearer ' + localStorage.getItem('user')}
+    }
+    if (query) {
+        config.params = query
+    }
+    return config
+}
+
+export default {
+    userReg: function (data) {
+        return axios.post('/user/reg', data, config())
+    },
+    getVerifyCode: function (data) {
+        return axios.post('/user/getverifyCode', data, config())
+    },
+    authInfo: function () {
+        return axios.get('/user/authInfo', config())
+    },
+    uploadHeader: function (data) {
+        return axios.post('/user/header', data, config())
+    },
+    getUserCollect: function () {
+        return axios.get(`/user/collect`, config())
+    },
+    userLogin: function (data) {
+        return axios.post('/auth', data, config())
+    },
+    getArticlesList: function (query) {
+        return axios.get('/article/list', config(query))
+    },
+    getArticle: function (data) {
+        return axios.get(`/article/${data}/detail`, config())
+    },
+    getArticleTags: function () {
+        return axios.get('/article/tags', config())
+    },
+    getMusicNetComment: function (data) {
+        return axios.get(`/netEaseMusicApi/hotcomment?id=${data.id}`, config(data.query))
+    },
+    getMusicUrl: function (data) {
+        return axios.get(`/netEaseMusicApi/urls?id=${data}`, config())
+    },
+    getMusicLyric: function (data) {
+        return axios.get(`/netEaseMusicApi/lyric?id=${data}`, config())
+    },
+    getMusicsList: function (query) {
+        return axios.get('/musicTopic/list', config(query))
+    },
+    getMusicDetail: function (id) {
+        return axios.get(`/musicTopic/${id}/detail`, config())
+    },
+    getArticleArchive: function () {
+        return axios.get('/article/archive', config())
+    },
+    getMusicArchive: function () {
+        return axios.get('/musicTopic/archive', config())
+    },
+    getComment: function (data) {
+        return axios.get(`/comment/${data.id}/list`, config(data.query))
+    },
+    postComment: function (data) {
+        return axios.post('/comment/make', data, config())
+    },
+    upComment: function (data) {
+        return axios.put('/comment/up', data, config())
+    },
+    getNoteList: function () {
+        return axios.get('/piece/list', config())
+    },
+    getNoteDetail: function (data) {
+        return axios.get(`/piece/${data}/detail`, config())
+    },
+    switchCollect: function (data) {
+        if (data.type) {
+            return axios.put(`/article/${data.id}/collect`, {}, config())
+        } else {
+            return axios.put(`/musicTopic/${data.id}/collect`, {}, config())
+        }
+    },
+    getMessage: function () {
+        return axios.get('/message/list', config())
+    },
+    getMessageCount: function () {
+        return axios.get('/message/count', config())
+    },
+    markAllMessage: function () {
+        return axios.post('/message/mark', null, config())
+    }
+}

@@ -1,0 +1,188 @@
+<template>
+    <div id="header">
+        <div class="header-container container">
+            <div class="logo-container">
+                <router-link class='block' to='/index'>
+                    <img src="/static/images/logo.png" alt="logo">
+                </router-link>
+            </div>
+            <div class="link-container">
+                <router-link to="/index" class='link-item' :class='{active:tab === 0}'>
+                    <span>touch</span>
+                    <svg version="1.1" viewBox="0 0 152.9 43.4" class='link-decoration'>
+                        <path d="M151.9,13.6c0,0,3.3-9.5-85-8.3c-97,1.3-58.3,29-58.3,29s9.7,8.1,69.7,8.1c68.3,0,69.3-23.1,69.3-23.1 s1.7-10.5-14.7-18.4"/>
+                    </svg>
+                </router-link>
+                <router-link to='/musics' class='link-item' :class='{active:tab === 1}'>
+                    <span>music</span>
+                    <svg version="1.1" viewBox="0 0 152.9 43.4" class='link-decoration'>
+                        <path d="M151.9,13.6c0,0,3.3-9.5-85-8.3c-97,1.3-58.3,29-58.3,29s9.7,8.1,69.7,8.1c68.3,0,69.3-23.1,69.3-23.1 s1.7-10.5-14.7-18.4"/>
+                    </svg>
+                </router-link>
+                <router-link to='/articles' class='link-item' :class='{active:tab === 2}'>
+                    <span>article</span>
+                    <svg version="1.1" viewBox="0 0 152.9 43.4" class='link-decoration'>
+                        <path d="M151.9,13.6c0,0,3.3-9.5-85-8.3c-97,1.3-58.3,29-58.3,29s9.7,8.1,69.7,8.1c68.3,0,69.3-23.1,69.3-23.1 s1.7-10.5-14.7-18.4"/>
+                    </svg>
+                </router-link>
+            </div>
+            <div class="user-info-container">
+                <div class="user-info__login cursor__pointer" v-if='authInfo' @mouseenter='showTab=true' @mouseleave='showTab=false'>
+                    <img class='header inline' :src="authInfo.header" alt="">
+                    <span class="has-message-dot" v-if='count'></span>
+                    <span class="nickname">{{authInfo.nickname}}</span>
+                    <div class="user-center" v-if='showTab'>
+                        <ul class='user-tab-container'>
+                            <li class="tab-item"><router-link class='item-link' :to="{path: '/user'}"><i class="icon fa fa-user"></i>我的主页</router-link></li>
+                            <li class="tab-item ">
+                                <router-link class='item-link message-notify' to='/user/message'><i class="icon fa fa-bell"></i>通知<span class='message-count' v-if='count'>{{count}}</span></router-link>
+                            </li>
+                            <li class="tab-item"><a class='item-link' href="javascript:void(0)" @click='logout()'><i class="icon fa fa-sign-out"></i><span>退出登录</span></a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="user-info__guest" v-else>
+                    <router-link class='guest__opration' to="/login">登录</router-link>
+                    <router-link class='guest__opration' to="/reg">注册</router-link> 
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import { USER_LOGOUT } from '../vuex/types'
+    import { mapGetters } from 'vuex'
+
+    export default {
+        data () {
+            return {
+                showTab: false
+            }
+        },
+        props: {
+            tab: {
+                type: Number
+            }
+        },
+        computed: mapGetters({
+            'authInfo': 'getAuthInfo',
+            'count': 'messageCount'
+        }),
+        mounted () {
+            if (this.authInfo) this.$store.dispatch('getNotReadMsgCount')
+        },
+        methods: {
+            logout () {
+                this.$store.commit(USER_LOGOUT)
+                this.$router.push('/login')
+            }
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    #header
+        padding-left calc(100vw - 100%)
+        background #fff
+        box-shadow 0 1px 5px #00
+        .header-container
+            display flex
+            height 60px
+            align-items center
+            justify-content space-between
+            .link-item
+                display inline-block
+                position relative
+                margin 0 30px
+                padding 0 20px
+                font-size 22px
+                .link-decoration
+                    position absolute
+                    top 50%
+                    left 50%
+                    width calc(100% + 40px)
+                    fill none
+                    stroke #000
+                    stroke-width 2
+                    stroke-dasharray 338
+                    stroke-dashoffset 338
+                    opacity 0
+                    transform translate(-50%, -50%)
+                &:hover, &.active
+                    .link-decoration
+                        opacity 1
+                        stroke-dashoffset 0
+                        transition opacity 0s, stroke-dashoffset 0.3s cubic-bezier(0.645, 0.045,0.355, 1)
+            .user-info-container
+                line-height 60px
+                .user-info__login
+                    position relative
+                    .header
+                        width 45px
+                        height 45px
+                        vertical-align middle
+                        border-radius 100%
+                    .nickname
+                        margin-left 10px
+                        font-size 16px
+                    .has-message-dot
+                        position absolute
+                        width 8px
+                        height 8px
+                        margin-top 10px
+                        margin-left -6px
+                        border-radius 100%
+                        background #de4c4c
+                    .user-center
+                        position absolute
+                        top 60px
+                        left -10px
+                        z-index 100
+                        width 160px
+                        padding-top 16px
+                        line-height normal
+                        .user-tab-container
+                            color #f6f6f6
+                            background currentColor
+                            .tab-item
+                                font-size 16px
+                                background currentColor
+                                .item-link
+                                    display block
+                                    padding 10px 16px
+                                    color #333
+                                    .icon
+                                        margin-right 20px
+                                    .message-count
+                                        position absolute
+                                        height 20px
+                                        padding 0 10px
+                                        margin-left 2px
+                                        margin-top -2px
+                                        border-radius 10px
+                                        color #fff
+                                        text-align center
+                                        background #de4c4c
+                                &:hover
+                                    color #ddd
+                                &:first-child
+                                    position relative
+                                    &:after
+                                        content: ''
+                                        position absolute
+                                        top 0
+                                        left 33px
+                                        width 0px
+                                        height 0px
+                                        border 16px solid transparent
+                                        border-right-width 10px
+                                        border-left-width 10px
+                                        border-bottom-color currentColor
+                                        transform translate(-50%, -100%)
+                .guest__opration
+                    font-size 16px
+                    padding 0 10px
+                    &:first-child
+                        border-right 1px solid #000
+</style>

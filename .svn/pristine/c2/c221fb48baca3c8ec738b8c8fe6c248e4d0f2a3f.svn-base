@@ -1,0 +1,230 @@
+<template>
+    <div class="user-message-container">
+        <div class="message-nav-container">
+            <label class="radio-container" for="not-read" @click='readMark = false'>
+                <input type="radio" class='radio-input' id="not-read" checked="true" name='message'>
+                <span class="radio-core"></span>
+                <span class="radio-text">未读消息</span>
+            </label>
+            <label class="radio-container" for="has-read" @click='readMark = true'>
+                <input type="radio" class='radio-input' id="has-read" name='message'>
+                <span class="radio-core"></span>
+                <span class="radio-text">已读信息</span>
+            </label>
+        </div>
+        <transition name='message' mode='out-in'>
+            <div class="message-container" v-if='!readMark' key='not-read'>
+                <div class="mark-all-message cursor__pointer" :class='{femail: authInfo.sex}' @click='markAll()'>标记所有信息为已读</div>
+                <ul class="message-list-container" v-if='notRead.length'>
+                    <li class="message-item" v-for='message in notRead'>
+                        <h3 class="message-title">
+                            <router-link class='link-to-detail' :to="{name: message.theme.songName ? 'music': 'article', params: {id: message.theme.id}}">{{message.theme.title}}</router-link><span class="music-song-title" v-if='message.theme.songName'>中'{{message.theme.songName}}'歌曲</span><span class="message-title-end">的评论中回复了你</span>
+                        </h3>
+                        <div class="message clearfix">
+                            <div class="message-user-info fr">
+                                <img class='user-info-header inline' :src="authInfo.header" alt="">
+                                <p class="user-info-nickname single-ellipsis">{{authInfo.nickname}}</p>
+                            </div>
+                            <div class="message-content fr">
+                                <p class='message-content-text' v-html='transformComment(message.comment.replyInfo.content)'></p>
+                                <p class="message-content-time"><i class="fa fa-clock-o"></i>{{message.comment.created | getTimeStr(true)}}</p>
+                                <div class="message-direction"></div>
+                            </div>
+                        </div>
+                        <div class="message clearfix">
+                            <div class="message-user-info reply fl">
+                                <img class='user-info-header inline' :src="message.fromUser.header" alt="">
+                                <p class="user-info-nickname single-ellipsis">{{message.fromUser.nickname}}</p>
+                            </div>
+                            <div class="message-content fl">
+                                <p class='message-content-text' v-html='transformComment(message.comment.content)'></p>
+                                <p class="message-content-time"><i class="fa fa-clock-o"></i>{{message.comment.created | getTimeStr(true)}}</p>
+                                <div class="message-direction reply"></div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <div class='no-message' v-else>目前还没有未读信息</div>
+            </div>
+            <div class="message-container" v-else key='has-read'>
+                <ul class="message-list-container" v-if='hasRead.length'>
+                    <li class="message-item" v-for='message in hasRead'>
+                        <h3 class="message-title">
+                            <router-link class='link-to-detail' :to="{name: message.theme.songName ? 'music': 'article', params: {id: message.theme.id}}">{{message.theme.title}}</router-link><span class="music-song-title" v-if='message.theme.songName'>中'{{message.theme.songName}}'歌曲</span><span class="message-title-end">的评论中回复了你</span>
+                        </h3>
+                        <div class="message clearfix">
+                            <div class="message-user-info fr">
+                                <img class='user-info-header inline' :src="authInfo.header" alt="">
+                                <p class="user-info-nickname single-ellipsis">{{authInfo.nickname}}</p>
+                            </div>
+                            <div class="message-content fr">
+                                <p class='message-content-text' v-html='transformComment(message.comment.replyInfo.content)'></p>
+                                <p class="message-content-time">{{message.comment.created | getTimeStr(true)}}</p>
+                                <div class="message-direction"></div>
+                            </div>
+                        </div>
+                        <div class="message clearfix">
+                            <div class="message-user-info reply fl">
+                                <img class='user-info-header inline' :src="message.fromUser.header" alt="">
+                                <p class="user-info-nickname single-ellipsis">{{message.fromUser.nickname}}</p>
+                            </div>
+                            <div class="message-content fl">
+                                <p class='message-content-text' v-html='transformComment(message.comment.content)'></p>
+                                <p class="message-content-time"><i class="fa fa-clock-o"></i>{{message.comment.created | getTimeStr(true)}}</p>
+                                <div class="message-direction reply"></div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <div class='no-message' v-else>目前还没有已读信息</div>
+            </div>
+        </transition>
+    </div>
+</template>
+
+<script>
+    import Api from '../../api/index'
+    import { transformEmoji } from '../../lib/emoji'
+    import { SWITCH_MESSAGE_COUNT } from '../../vuex/types'
+
+    export default {
+        data () {
+            return {
+                readMark: false,
+                hasRead: [],
+                notRead: []
+            }
+        },
+        computed: {
+            authInfo () {
+                return this.$store.getters.getAuthInfo
+            }
+        },
+        mounted () {
+            this.initMessage()
+        },
+        methods: {
+            initMessage () {
+                Api.getMessage()
+                    .then(response => {
+                        let result = response.data
+                        if (result.errno) {
+                            alert(result.errorMsg)
+                        } else {
+                            this.hasRead = result.has_read
+                            this.notRead = result.has_not_read
+                        }
+                    })
+            },
+            markAll () {
+                if (!this.notRead.length) return
+                this.$confirm('是否全部标记为已读？', () => {
+                    Api.markAllMessage()
+                        .then(response => {
+                            let result = response.data
+                            if (result.errno) {
+                                alert(result.errorMsg)
+                            } else {
+                                this.hasRead = this.hasRead.concat(this.notRead)
+                                this.notRead = []
+                                this.$store.commit(SWITCH_MESSAGE_COUNT, 0)
+                            }
+                        })
+                })
+            },
+            transformComment (comment) {
+                return transformEmoji(comment)
+            }
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .user-message-container
+        margin-bottom 50px
+        border 1px solid #f5f5f5
+        .message-nav-container
+            padding 0 20px
+            border-bottom 1px solid #f5f5f5
+            line-height 48px
+            .radio-container
+                margin-right 20px
+                font-size 14px
+        .message-list-container
+            min-height 600px
+            .message-item
+                padding 20px
+                font-size 14px
+                border-bottom 1px solid #f5f5f5
+                .message-title
+                    line-height 36px
+                    text-align center
+                    font-size 16px
+                    .link-to-detail
+                        text-decoration underline
+                .message
+                    margin 16px 0
+                    .message-user-info
+                        max-width 80px
+                        margin-left 30px
+                        text-align center
+                        .user-info-header
+                            width 60px
+                            height 60px
+                            border-radius 100%
+                        &.reply
+                            margin-left 0
+                            margin-right 30px
+                    .message-content
+                        position relative
+                        max-width 50%
+                        padding 10px 16px
+                        border-radius 6px
+                        background #eee
+                        .message-content-time
+                            margin-top 10px
+                            color #777
+                            font-size 12px
+                            text-align right
+                            .fa
+                                margin-right 6px
+                        .message-direction
+                            position absolute
+                            right 0
+                            top 6px
+                            width 0
+                            height 0
+                            border-top 13px solid transparent
+                            border-left 14px solid #eee
+                            border-bottom 6px solid transparent
+                            transform translateX(100%)
+                            &.reply
+                                left 0
+                                right unset
+                                border-left none
+                                border-right 14px solid #eee
+                                transform translateX(-100%)
+                    &:last-child
+                        margin-bottom 0
+        .message-container
+            position relative
+            min-height 600px
+            .mark-all-message
+                padding-right 20px
+                line-height 50px
+                text-align right
+                color #59bfff
+                font-size 14px
+                &.femail
+                    color #ff5b7e
+            .no-message
+                position absolute
+                top 50%
+                left 50%
+                font-size 14px
+                transform translate(-50%, -50%)
+    .message-enter-active, .message-leave-active
+        transition all .4s ease-out
+    .message-enter
+        opacity 0
+</style>

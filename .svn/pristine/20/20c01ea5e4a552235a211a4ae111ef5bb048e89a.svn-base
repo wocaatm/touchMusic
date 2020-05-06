@@ -1,0 +1,227 @@
+<template>
+    <div class="user-collect-container">
+        <div class="collect-nav-container">
+            <div class="collect-item-container">
+                <span class="collect-item" :class='{active:!collectType}' @click='switchCollect(0)'><i class="fa fa-music"></i>Music</span>
+                <span class="collect-item" :class='{active:collectType}' @click='switchCollect(1)'><i class="fa fa-book"></i>文章</span>
+                <span class="collect-slider-bar" ref='slider'></span>
+            </div>
+        </div>
+        <div class="collect-content-container">
+            <transition name='collect' mode="out-in">
+                <div class="collect-tab" v-if='!collectType' key='music'>
+                    <ul class="clearfix" v-if='musicCollect.length'>
+                        <li class="content-item square fl" v-for='(music, index) in musicCollect'>
+                            <div class="item-container clearfix">
+                                <router-link :to="{name: 'music', params: {id: music._id}}" class='item-thumb-container fl'>
+                                    <img :src="music.thumb" alt="" class="item-thumb">
+                                </router-link>
+                                <div class="item-info-container">
+                                    <div class="info-main-container">
+                                        <router-link :to="{name: 'music', params: {id: music._id}}" class="item-info-title">{{music.name}}</router-link>
+                                        <p class="item-info-description">{{music.description}}</p>
+                                    </div>
+                                    <div class="info-other-container clearfix">
+                                        <span class="info-created-time fl">{{music.created | getTimeStr}}</span>
+                                        <span class="cancel-collect-icon fr" @click='cancelCollect(music._id, index, 0)'><i class="fa fa-heart"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="no-collect" v-else>
+                        <i class="fa fa-smile-o"></i>您目前还没有收藏任何歌单
+                        <router-link to='/musics' class='link-to-list' :class="{femail: authInfo.sex}">查看歌单</router-link>
+                    </div>
+                </div>
+                <div class="collect-tab" v-else key='article'>
+                    <ul class="clearfix" v-if='articleCollect.length'>
+                        <li class="content-item fl" v-for='(article, index) in articleCollect'>
+                            <div class="item-container clearfix">
+                                <router-link :to="{name: 'article', params: {id: article._id}}" class='item-thumb-container fl'>
+                                    <img :src="article.thumb" alt="" class="item-thumb">
+                                </router-link>
+                                <div class="item-info-container">
+                                    <div class="info-main-container">
+                                        <router-link :to="{name: 'article', params: {id: article._id}}" class="item-info-title">{{article.title}}</router-link>
+                                        <p class="item-info-description">{{article.description}}</p>
+                                    </div>
+                                    <div class="info-other-container clearfix">
+                                        <span class="info-created-time fl">{{article.created | getTimeStr}}</span>
+                                        <span class="cancel-collect-icon fr" @click='cancelCollect(article._id, index, 1)'><i class="fa fa-heart"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="no-collect" v-else>
+                        <i class="fa fa-smile-o"></i>您目前还没有收藏任何文章
+                        <router-link to='/articles' class='link-to-list' :class="{femail: authInfo.sex}">查看文章</router-link>
+                    </div>
+                </div>
+            </transition>
+        </div>
+    </div>
+</template>
+
+<script>
+    import Api from '../../api/index'
+    import { alert, confirm } from '../../lib/dialog'
+
+    export default {
+        data () {
+            return {
+                articleCollect: [],
+                musicCollect: [],
+                collectType: false
+            }
+        },
+        computed: {
+            authInfo () {
+                return this.$store.getters.getAuthInfo
+            }
+        },
+        mounted () {
+            this.initCollectData()
+        },
+        methods: {
+            initCollectData () {
+                Api.getUserCollect()
+                    .then(response => {
+                        let result = response.data
+                        this.articleCollect = result.collect.articleCollect
+                        this.musicCollect = result.collect.musicCollect
+                    })
+            },
+            switchCollect (type) {
+                this.collectType = !!type
+                this.$refs.slider.style.left = type * 90 + 'px'
+            },
+            cancelCollect (id, index, type) {
+                confirm('是否取消收藏？', () => {
+                    Api.switchCollect({id, type})
+                        .then(response => {
+                            let result = response.data
+                            if (result.success) {
+                                if (type) {
+                                    this.articleCollect.splice(index, 1)
+                                } else {
+                                    this.musicCollect.splice(index, 1)
+                                }
+                            } else {
+                                alert('服务器错误，稍后再试')
+                            }
+                        })
+                })
+            }
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .user-collect-container
+        margin-bottom 50px
+        border 1px solid #f5f5f5
+        overflow-x hidden
+        .collect-nav-container
+            line-height 48px
+            border-bottom 1px solid #f5f5f5
+            .collect-item-container
+                position relative
+                margin-left 20px
+                .collect-item
+                    display inline-block
+                    width 90px
+                    text-align center
+                    font-size 14px
+                    color #444
+                    cursor pointer
+                    &.active
+                        color #000
+                    .fa
+                        margin-right 6px
+                .collect-slider-bar
+                    content ''
+                    position absolute
+                    bottom -1px
+                    left 0
+                    width 88px
+                    height 0
+                    border 1px solid #000
+                    transition left 0.4s ease-out
+        .collect-tab
+            min-height 600px
+            position relative
+            padding 10px 20px
+            .content-item
+                box-sizing border-box
+                width 50%
+                height 120px
+                margin-bottom 16px
+                padding 10px
+                .item-thumb-container
+                    width 140px
+                    height 100px
+                    .item-thumb
+                        width 100%
+                        height 100%
+                .item-info-container
+                    height 100px
+                    margin-left 160px
+                    color #000
+                    font-size 14px
+                    .info-main-container
+                        box-sizing border-box
+                        height 100px
+                        padding-bottom 24px
+                        .item-info-title
+                            display inline-block
+                            margin-bottom 10px
+                            font-size 16px
+                            background linear-gradient(0, transparent 0%,rgba(26,26,26,.6) 0) no-repeat bottom left / 0% 1px
+                            transition background 0.5s
+                            &:hover
+                                background-size 100% 1px
+                        .item-info-description
+                            height 48px
+                            line-height 1.6em
+                            color #333
+                            overflow hidden
+                    .info-other-container
+                        position relative
+                        margin-top -24px
+                        line-height 24px
+                        font-size 12px
+                        color #666
+                        .cancel-collect-icon
+                            font-size 16px
+                            color #de4c4c
+                            cursor pointer
+                &.square
+                    .item-thumb-container
+                        width 100px
+                    .item-info-container
+                        margin-left 120px
+                &:hover
+                    background #f5f5f5
+            .no-collect
+                position absolute
+                top 50%
+                left 50%
+                transform translate(-50%,-50%)
+                font-size 16px
+                .fa
+                    margin-right 10px
+                .link-to-list
+                    margin-left 10px
+                    color #59bfff
+                    text-decoration underline
+                    &.femail
+                        color #ff5b7e
+    .collect-enter-active, .collect-leave-active
+        transition all .4s ease-out
+    .collect-enter
+        transform translateX(100%)
+    .collect-leave-to
+        transform translateX(-100%)
+</style>

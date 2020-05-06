@@ -1,0 +1,271 @@
+import Api from '../api/index'
+import { $ } from './util'
+
+const timeExp = /\[(\d{2}):(\d{2})\.(\d*)]/,
+      lrcExp = /](.*)$/
+
+const Linear = function (t, b, c, d) {
+    return c * t / d + b
+}
+
+export default class LyricManage {
+    constructor (mount) {
+        /* 挂载点 */
+        this.mount = mount
+        /* 歌词缓存 */
+        this.lyricCache = []
+        /* 歌词切换具体参数 */
+        this.lyricSwitchContent = []
+        this.lyricSwitchTime = []
+        this.index = 0
+        this.lastIndex = -1
+        this.minInterval = null
+        /* 歌词html DOM对象 */
+        this.lyricContainer = null
+        this.lyricItem = null
+        /* 状态 */
+        this.lyricFromCache = false
+        this.hasLyric = false
+        /* 歌词悬停 */
+        this.mouseHover = false
+    }
+
+    /* 根据musicId 初始化歌词容器 */
+    initLyricContainer (id) {
+        this.lyricCache.forEach(item => {
+            if (item.id == id) {
+                this.lyricFromCache = true
+                if (typeof item.lyric === 'boolean') {
+                    this.hasLyric = false
+                } else {
+                    this.hasLyric = true
+                    this.lyricSwitchContent = item.lyric
+                    this.lyricSwitchTime = item.time
+                }
+            }
+        })
+
+        if (!this.lyricFromCache) {
+            Api.getMusicLyric(id)
+                .then(response => {
+                    let data = response.data
+                    if (!data.errno) {
+                        this.hasLyric = !data.nolyric
+                        if (this.hasLyric) {
+                            this.analyseLyric(data)
+                        }
+                        this.cacheLyric(id)
+                        this.rendererLyric()
+                    }
+                })
+            return
+        }
+
+        this.lyricFromCache = false
+        this.rendererLyric()
+    }
+
+    /* 分析歌词 */
+    analyseLyric (lyricInfo) {
+        let { lrc, tlyric } = lyricInfo,
+            lyricOrigin = this.parseLyric(lrc)
+
+        if (tlyric) {
+            let lyricTransform = this.parseLyric(tlyric),
+                lyricTransformTimes = lyricTransform.times,
+                lyricTransformLyrics = lyricTransform.lyrics,
+                lyricOriginTimes = lyricOrigin.times,
+                lyricOriginLyrics = lyricOrigin.lyrics
+
+            for (let x = 0; x < lyricTransformLyrics.length; x++) {
+                let index = lyricOriginTimes.indexOf(lyricTransformTimes[x])
+                if (index !== -1) lyricOriginLyrics[index].push(lyricTransformLyrics[x][0])
+            }
+        }
+
+        this.lyricSwitchTime = lyricOrigin.times
+        this.lyricSwitchContent = lyricOrigin.lyrics
+    }
+
+    /* 解析歌词 （把歌词字符串转出数组） */
+    parseLyric (lyricObj) {
+        let times = [],
+            lyrics = [],
+            lyricLine = lyricObj.split('\n'),
+            noScroll = true,
+            noScrollLyric = []
+
+        for (let i = 0; i < lyricLine.length; i++) {
+            let line = lyricLine[i]
+
+            if (!line) continue
+
+            let lineTime = timeExp.exec(line)
+            let lineLyric = lrcExp.exec(line)
+
+            if (lineTime && lineLyric) {
+                let [ _, minute, second, millisecond ] = lineTime
+                times.push((+minute * 60) + (+second) + (+millisecond / Math.pow(10, millisecond.length)))
+                lyrics.push([lineLyric[1]])
+                noScroll = false
+            } else {
+                noScrollLyric.push([line])
+            }
+        }
+
+        if (noScroll) lyrics = noScrollLyric
+
+        return {
+            times,
+            lyrics
+        }
+    }
+
+    /* 歌词缓存 */
+    cacheLyric (id) {
+        let cache = {
+            id: id,
+            lyric: false
+        }
+        if (this.lyricSwitchContent.length) {
+            cache.lyric = this.lyricSwitchContent
+            cache.time = this.lyricSwitchTime
+        }
+        this.lyricCache.push(cache)
+    }
+
+    /* 根据歌词来渲染内容 */
+    rendererLyric () {
+        let childNodes = this.mount.childNodes,
+            renderElement
+
+        /* 移除已存在的歌词 */
+        this.mount.removeChild(childNodes[childNodes.length - 1])
+
+        if (this.hasLyric) {
+            renderElement = document.createElement('ul')
+            renderElement.classList.add('lyric-ul-container', 'scroll-bar')
+
+            let lisHtml = `${this.lyricSwitchContent.map((lyric) => `
+                <li class='lyric-item'>
+                    ${lyric.map((item) => `<p class='lyric-content'>${item}</p>`).join('')}
+                </li>
+            `).join('')}`
+            renderElement.innerHTML = lisHtml
+        } else {
+            renderElement = document.createElement('p')
+            renderElement.classList.add('no-lyric-tips')
+            renderElement.innerHTML = '纯音乐，请欣赏'
+        }
+
+        this.mount.appendChild(renderElement)
+
+        this.restArguments()
+    }
+
+    /* 在有歌词并支持滚动的时候参数重置 */
+    restArguments () {
+        if (this.checkScrollState()) return
+
+        this.lyricContainer = $('.lyric-ul-container', this.mount)
+        this.lyricItem = $('.lyric-item', this.lyricContainer, true)
+        this.index = 0
+        this.lastIndex = -1
+        this.minInterval = null
+
+        /* 移除最后一个time的active状态 */
+        this.lyricItem[this.lyricItem.length - 1].classList.remove('active')
+        /* 同一首歌的话scrollTop = 0 */
+        this.lyricContainer.scrollTop = 0
+
+        /* 歌词容器悬停不滚动 */
+        this.lyricContainer.addEventListener('mouseenter', () => {
+            this.mouseHover = true
+        })
+
+        this.lyricContainer.addEventListener('mouseleave', () => {
+            this.mouseHover = false
+        })
+    }
+
+    /* 用户手动切换播放进度需要进行的操作 */
+    switchProgressTime (switchTime) {
+        /* 纯音和不支持滚动的歌词return */
+        if (this.checkScrollState()) return
+
+        let audioTime,
+            switchTimeLength = this.lyricSwitchTime.length
+
+        for (let i = 0; i < switchTimeLength; i++) {
+            if (i === switchTimeLength - 1) break
+            if (this.lyricSwitchTime[i] < switchTime && switchTime < this.lyricSwitchTime[i + 1]) {
+                this.index = i
+                audioTime = this.lyricSwitchTime[i]
+                break
+            }
+        }
+
+        /* 时长切到最后的伴奏 */
+        if (!audioTime) {
+            /* 移除上一个active元素 */
+            let removeActiveEle = this.lyricItem[this.lastIndex]
+            if (removeActiveEle) removeActiveEle.classList.remove('active')
+
+            this.lyricContainer.scrollTop = 10000
+            this.index = this.lastIndex = switchTimeLength
+        }
+
+        return audioTime
+    }
+
+    /* 滚动歌词显示 */
+    updateLyricLine (audioTime) {
+        if (!this.hasLyric || (this.index > (this.lyricSwitchTime.length - 1))) return
+
+        let interval = Math.abs(audioTime - this.lyricSwitchTime[this.index])
+
+        /* 更新歌词 currentTime一秒分至少3个时段 */
+        if (interval < 0.5 || (this.minInterval && this.minInterval < interval)) {
+            let activeEle = this.lyricItem[this.index],
+                to = (activeEle.offsetTop + activeEle.offsetHeight / 2 - 50) - (this.lyricContainer.offsetHeight / 2),
+                preActiveEle = this.lyricItem[this.lastIndex]
+
+            if (preActiveEle) preActiveEle.classList.remove('active')
+            activeEle.classList.add('active')
+
+            if (to > 0 && !this.mouseHover) {
+                let from = this.lyricContainer.scrollTop,
+                    change = to - from
+                this.scrollBar(from, change, 20)
+            }
+            this.index++
+            this.lastIndex = this.index - 1
+            this.minInterval = null
+        } else {
+            this.minInterval = interval
+        }
+    }
+
+    scrollBar (start, change, frame) {
+        let t = 0
+        let step = () => {
+            let value = Linear(t, 0, change, frame)
+            this.lyricContainer.scrollTop = start + value
+            t++
+            if (t < frame) {
+                this.requestFrame = requestAnimationFrame(step)
+            } else {
+                cancelAnimationFrame(this.requestFrame)
+                this.requestFrame = null
+            }
+        }
+        if (this.requestFrame) {
+            cancelAnimationFrame(this.requestFrame)
+        }
+        step()
+    }
+
+    checkScrollState () {
+        return !this.hasLyric || !this.lyricSwitchTime.length
+    }
+}

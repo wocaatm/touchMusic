@@ -1,0 +1,74 @@
+const emojis = [{icon: '[微笑]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/5c/huanglianwx_org.gif'},{icon: '[嘻嘻]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/0b/tootha_org.gif'},{icon: '[哈哈]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/6a/laugh.gif'},{icon: '[可爱]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/14/tza_org.gif'},{icon: '[可怜]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/af/kl_org.gif'},{icon: '[挖鼻]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/0b/wabi_org.gif'},{icon: '[吃惊]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/f4/cj_org.gif'},{icon: '[害羞]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/6e/shamea_org.gif'},{icon: '[挤眼]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/c3/zy_org.gif'},{icon: '[闭嘴]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/29/bz_org.gif'},{icon: '[鄙视]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/71/bs2_org.gif'},{icon: '[爱你]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/6d/lovea_org.gif'},{icon: '[泪]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/9d/sada_org.gif'},{icon: '[偷笑]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/19/heia_org.gif'},{icon: '[亲亲]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/8f/qq_org.gif'},{icon: '[生病]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/b6/sb_org.gif'},{icon: '[太开心]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/58/mb_org.gif'},{icon: '[白眼]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/d9/landeln_org.gif'},{icon: '[右哼哼]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/98/yhh_org.gif'},{icon: '[左哼哼]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/6d/zhh_org.gif'},{icon: '[嘘]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/a6/x_org.gif'},{icon: '[衰]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/af/cry.gif'},{icon: '[委屈]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/73/wq_org.gif'},{icon: '[吐]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/9e/t_org.gif'},{icon: '[哈欠]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/cc/haqianv2_org.gif'},{icon: '[抱抱]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/27/bba_org.gif'},{icon: '[怒]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/7c/angrya_org.gif'},{icon: '[疑问]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/5c/yw_org.gif'},{icon: '[馋嘴]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/a5/cza_org.gif'},{icon: '[拜拜]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/70/88_org.gif'},{icon: '[思考]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/e9/sk_org.gif'},{icon: '[汗]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/24/sweata_org.gif'},{icon: '[困]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/40/kunv2_org.gif'},{icon: '[睡]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/96/huangliansj_org.gif'},{icon: '[钱]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/90/money_org.gif'},{icon: '[失望]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/0c/sw_org.gif'},{icon: '[酷]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/40/cool_org.gif'},{icon: '[色]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/20/huanglianse_org.gif'},{icon: '[哼]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/49/hatea_org.gif'},{icon: '[鼓掌]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/36/gza_org.gif'},{icon: '[晕]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/d9/dizzya_org.gif'},{icon: '[悲伤]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/1a/bs_org.gif'},{icon: '[抓狂]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/62/crazya_org.gif'},{icon: '[黑线]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/91/h_org.gif'},{icon: '[阴险]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/6d/yx_org.gif'},{icon: '[怒骂]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/60/numav2_org.gif'},{icon: '[互粉]', url: 'http://img.t.sinajs.cn/t4/appstyle/expression/ext/normal/89/hufen_org.gif'}]
+
+const netEaseEmojis = [{ icon: '[大笑]', url: 'http://s1.music.126.net/style/web2/emt/emoji_86.png'},{ icon: '[可爱]', url: 'http://s1.music.126.net/style/web2/emt/emoji_85.png' },{ icon: '[憨笑]', url: 'http://s1.music.126.net/style/web2/emt/emoji_359.png' },{ icon: '[色]', url: 'http://s1.music.126.net/style/web2/emt/emoji_95.png' },{ icon: '[亲亲]', url: 'http://s1.music.126.net/style/web2/emt/emoji_363.png' },{ icon: '[惊恐]', url: 'http://s1.music.126.net/style/web2/emt/emoji_96.png' },{ icon: '[流泪]', url: 'http://s1.music.126.net/style/web2/emt/emoji_356.png' },{ icon: '[亲]', url: 'http://s1.music.126.net/style/web2/emt/emoji_362.png' },{ icon: '[呆]', url: 'http://s1.music.126.net/style/web2/emt/emoji_352.png' },{ icon: '[哀伤]', url: 'http://s1.music.126.net/style/web2/emt/emoji_342.png' },{ icon: '[呲牙]', url: 'http://s1.music.126.net/style/web2/emt/emoji_343.png' },{ icon: '[吐舌]', url: 'http://s1.music.126.net/style/web2/emt/emoji_348.png' },{ icon: '[撇嘴]', url: 'http://s1.music.126.net/style/web2/emt/emoji_353.png' },{ icon: '[怒]', url: 'http://s1.music.126.net/style/web2/emt/emoji_361.png' },{ icon: '[奸笑]', url: 'http://s1.music.126.net/style/web2/emt/emoji_341.png' },{ icon: '[汗]', url: 'http://s1.music.126.net/style/web2/emt/emoji_97.png' },{ icon: '[痛苦]', url: 'http://s1.music.126.net/style/web2/emt/emoji_346.png' },{ icon: '[惶恐]', url: 'http://s1.music.126.net/style/web2/emt/emoji_354.png' },{ icon: '[生病]', url: 'http://s1.music.126.net/style/web2/emt/emoji_350.png' },{ icon: '[口罩]', url: 'http://s1.music.126.net/style/web2/emt/emoji_351.png' },{ icon: '[大哭]', url: 'http://s1.music.126.net/style/web2/emt/emoji_357.png' },{ icon: '[晕]', url: 'http://s1.music.126.net/style/web2/emt/emoji_355.png' },{ icon: '[发怒]', url: 'http://s1.music.126.net/style/web2/emt/emoji_115.png' },{ icon: '[开心]', url: 'http://s1.music.126.net/style/web2/emt/emoji_360.png' },{ icon: '[鬼脸]', url: 'http://s1.music.126.net/style/web2/emt/emoji_94.png' },{ icon: '[皱眉]', url: 'http://s1.music.126.net/style/web2/emt/emoji_87.png' },{ icon: '[流感]', url: 'http://s1.music.126.net/style/web2/emt/emoji_358.png' },{ icon: '[爱心]', url: 'http://s1.music.126.net/style/web2/emt/emoji_33.png' },{ icon: '[心碎]', url: 'http://s1.music.126.net/style/web2/emt/emoji_34.png' },{ icon: '[钟情]', url: 'http://s1.music.126.net/style/web2/emt/emoji_303.png' },{ icon: '[星星]', url: 'http://s1.music.126.net/style/web2/emt/emoji_309.png' },{ icon: '[生气]', url: 'http://s1.music.126.net/style/web2/emt/emoji_314.png' },{ icon: '[便便]', url: 'http://s1.music.126.net/style/web2/emt/emoji_89.png' },{ icon: '[强]', url: 'http://s1.music.126.net/style/web2/emt/emoji_13.png' },{ icon: '[弱]', url: 'http://s1.music.126.net/style/web2/emt/emoji_372.png' },{ icon: '[拜]', url: 'http://s1.music.126.net/style/web2/emt/emoji_14.png' },{ icon: '[牵手]', url: 'http://s1.music.126.net/style/web2/emt/emoji_379.png' },{ icon: '[跳舞]', url: 'http://s1.music.126.net/style/web2/emt/emoji_380.png' },{ icon: '[禁止]', url: 'http://s1.music.126.net/style/web2/emt/emoji_374.png' },{ icon: '[这边]', url: 'http://s1.music.126.net/style/web2/emt/emoji_262.png' },{ icon: '[爱意]', url: 'http://s1.music.126.net/style/web2/emt/emoji_106.png' },{ icon: '[示爱]', url: 'http://s1.music.126.net/style/web2/emt/emoji_376.png' },{ icon: '[嘴唇]', url: 'http://s1.music.126.net/style/web2/emt/emoji_367.png' },{ icon: '[狗]', url: 'http://s1.music.126.net/style/web2/emt/emoji_81.png' },{ icon: '[猫]', url: 'http://s1.music.126.net/style/web2/emt/emoji_78.png' },{ icon: '[猪]', url: 'http://s1.music.126.net/style/web2/emt/emoji_100.png' },{ icon: '[兔子]', url: 'http://s1.music.126.net/style/web2/emt/emoji_459.png' },{ icon: '[小鸡]', url: 'http://s1.music.126.net/style/web2/emt/emoji_450.png' },{ icon: '[公鸡]', url: 'http://s1.music.126.net/style/web2/emt/emoji_461.png' },{ icon: '[幽灵]', url: 'http://s1.music.126.net/style/web2/emt/emoji_116.png' },{ icon: '[圣诞]', url: 'http://s1.music.126.net/style/web2/emt/emoji_411.png' },{ icon: '[外星]', url: 'http://s1.music.126.net/style/web2/emt/emoji_101.png' },{ icon: '[钻石]', url: 'http://s1.music.126.net/style/web2/emt/emoji_52.png' },{ icon: '[礼物]', url: 'http://s1.music.126.net/style/web2/emt/emoji_107.png' },{ icon: '[男孩]', url: 'http://s1.music.126.net/style/web2/emt/emoji_0.png' },{ icon: '[女孩]', url: 'http://s1.music.126.net/style/web2/emt/emoji_1.png' },{ icon: '[蛋糕]', url: 'http://s1.music.126.net/style/web2/emt/emoji_337.png' },{ icon: '[18]', url: 'http://s1.music.126.net/style/web2/emt/emoji_186.png' },{ icon: '[圈]', url: 'http://s1.music.126.net/style/web2/emt/emoji_312.png' },{ icon: '[叉]', url: 'http://s1.music.126.net/style/web2/emt/emoji_313.png' }]
+
+var emojisIcon = emojis.map(function (item) {
+    return item.icon
+})
+
+var netEaseEmojisIcon = netEaseEmojis.map(function (item) {
+    return item.icon
+})
+
+//返回左括弧的index
+function getLeftBrackets(comment) {
+    if (comment.indexOf('[') === -1) return false
+    var leftBracketsArr = [],
+        flag = true,
+        start = 0
+    while(flag) {
+        var index = comment.indexOf('[', start)
+        if (index === -1 || start + 1 >= comment.length) {
+            flag = false
+            continue
+        }
+        leftBracketsArr.push(index)
+        start = index + 1
+    }
+    return leftBracketsArr
+}
+
+
+//通过做括弧找需要解析的parse
+function getCommentParse (comment, leftArr) {
+    var parseArr = []
+    for (var i = 0; i < leftArr.length; i++) {
+        var endIndex = comment.indexOf(']', leftArr[i] + 1)
+        if (endIndex === -1) break
+        var data = comment.substr(leftArr[i], (endIndex - leftArr[i] + 1))
+        parseArr.push(data)
+    }
+
+    return parseArr
+}
+
+
+function transformEmoji (comment, from) {
+    var leftBracketsArr = getLeftBrackets(comment)
+    if (!leftBracketsArr) return comment
+    var needParseArr = getCommentParse(comment, leftBracketsArr)
+    if (!needParseArr.length) return comment
+    var parseCheckArr
+    if (from) {
+        parseCheckArr = netEaseEmojisIcon
+    } else {
+        parseCheckArr = emojisIcon
+    }
+    for (var m = 0; m < needParseArr.length; m++) {
+        var index = parseCheckArr.indexOf(needParseArr[m])
+        if (index === -1) continue
+        if (from) {
+            var imgHtml = `<img class='inline emoji' src='${netEaseEmojis[index].url}'></img>`
+        } else {
+            var imgHtml = `<img class='inline emoji' src='${emojis[index].url}'></img>`
+        }
+        
+        comment = comment.replace(needParseArr[m], imgHtml)
+    }
+    return comment
+}
+
+export {
+    emojis,
+    transformEmoji
+}

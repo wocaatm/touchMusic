@@ -1,0 +1,179 @@
+<template>
+    <div class="reply-container">
+        <textarea class="editor-content" :placeholder="placeholder" @input='checkReplySize()' ref='reply'></textarea>
+        <div class="editor-opration-container clearfix">
+            <div class="editor-emoji-container cursor__pointer fl" :class="{active: toggleEmoji}" @click='toggleEmoji = !toggleEmoji'>
+                <i class="fa fa-smile-o fa-lg"></i>
+                <ul class="emojis-ul-container clearfix">
+                    <li class="emoji-item fl" v-for='emoji in emojis' @click='addEmoji(emoji.icon)'>
+                        <img :src="emoji.url">
+                    </li>
+                </ul>
+            </div>
+            <a href="javascript:void(0)" class="editor-submit-btn fr" @click='replyComment'>{{opration}}</a>
+            <span class="editor-remain-word fr" :class="{waring: leftWordCount < 10}">剩余字数：{{leftWordCount}}</span>
+        </div>
+    </div>
+</template>
+
+<script>
+    import { emojis } from '../lib/emoji'
+    import Api from '../api/index'
+    import { alert } from '../lib/dialog'
+
+    export default {
+        data () {
+            return {
+                toggleEmoji: false,
+                reply: '',
+                emojis: []
+            }
+        },
+        props: {
+            id: {
+                type: String,
+                required: true
+            },
+            maxLength: {
+                type: Number,
+                default: 140
+            },
+            /* 音乐模块和文字模块区分 */
+            module: {
+                type: Number,
+                required: true
+            },
+            cid: {
+                type: String
+            },
+            toUserName: {
+                type: String
+            }
+        },
+        computed: {
+            opration () {
+                return !this.cid ? '评论' : '回复'
+            },
+            leftWordCount () {
+                return this.maxLength - this.reply.length
+            },
+            placeholder () {
+                return !this.cid ? '参与评论' : '@ ' + this.toUserName
+            },
+            authInfo () {
+                return this.$store.getters.getAuthInfo
+            }
+        },
+        mounted () {
+            this.emojis = emojis
+        },
+        methods: {
+            addEmoji (parse) {
+                if ((this.reply.length + parse.length) > this.maxLength) return
+                this.reply += parse
+                this.$refs.reply.value += parse
+            },
+            checkReplySize () {
+                let textarea = this.$refs.reply
+                let reply = textarea.value
+                this.reply = reply
+                if (reply.length > this.maxLength) {
+                    this.reply = textarea.value = reply.slice(0, this.maxLength)
+                }
+            },
+            replyComment () {
+                if (!this.authInfo) {
+                    alert('请先登录')
+                    return
+                }
+                let data = {
+                    id: this.id,
+                    type: this.module,
+                    content: this.reply
+                }
+                if (this.cid) {
+                    data.replyId = this.cid
+                }
+                /* 提交评论成功emit事件 */
+                Api.postComment(data)
+                    .then(response => {
+                        let result = response.data.comment
+                        result.uid = {
+                            _id: this.authInfo.id,
+                            nickname: this.authInfo.nickname,
+                            header: this.authInfo.header
+                        }
+                        if (!this.cid) {
+                            this.reply = ''
+                            this.$refs.reply.value = ''
+                        }
+                        this.$emit('mergeComment', [result, this.cid])
+                    })
+                    .catch(err => {
+                        console.log(err)
+                    })
+            }
+        }
+    }
+</script>
+
+<style lang="stylus">
+    .editor-content
+        display block
+        box-sizing border-box
+        width 100%
+        height 80px
+        padding 10px 12px
+        border 1px solid #cdcdcd
+        border-radius 6px
+        color #333
+        resize none
+    .editor-opration-container
+        margin-top 10px
+        line-height 30px
+        .editor-emoji-container
+            position relative
+            .emojis-ul-container
+                display none
+                position absolute
+                z-index 2
+                left -10px
+                width 266px
+                margin-top 6px
+                padding 10px 10px 6px
+                border 1px solid #ccc
+                border-radius 4px
+                background #fff
+                &:after
+                    position absolute
+                    top 0
+                    left 9px
+                    width 12px
+                    height 12px
+                    border 1px solid #ccc
+                    border-right-color transparent
+                    border-bottom-color transparent
+                    background #fff
+                    transform translateY(-50%) rotate(45deg)
+                .emoji-item
+                    width 22px
+                    height 22px
+                    padding 2px
+                    margin 0 4px 4px 0
+                    &:hover
+                        background #ddd
+                    &:nth-child(9n)
+                        margin-right 0
+            &.active .emojis-ul-container
+                display block
+        .editor-remain-word
+            margin-right 16px
+            color #666
+            &.waring
+                color #de4c4c
+        .editor-submit-btn
+            padding 0 20px
+            border-radius 4px
+            background #0c73c2
+            color #fff
+</style>

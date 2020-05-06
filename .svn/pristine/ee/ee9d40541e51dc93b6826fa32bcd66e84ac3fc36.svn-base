@@ -1,0 +1,175 @@
+<template>
+    <div class="user-baseinfo-container" v-if='authInfo'>
+        <div class="baseinfo-header"><i class="fa fa-user-circle-o"></i>我的资料</div>
+        <div class="baseinfo-thumb-container">
+            <div class='thumb-show-upload'>
+                <img class='thumb-show inline' :src="authInfo.header" alt="">
+                <div class="thumb-upload">
+                    <label class="thumb-tips" for='thumb'>上传头像</label>
+                    <input class='thumb-select' id='thumb' type="file" accept="image/png,image/gif,image/jpeg" @change='switchHeader()' ref='header'>
+                </div>
+            </div>
+            <ul class="thumb-upload-tips">
+                <li class="tip-item">1：头像上传格式为：png、gif、jpeg、jpg</li>
+                <li class="tip-item">2：大小不能超过2M</li>
+                <li class="tip-item">3：最佳长宽比例1:1</li>
+            </ul>
+        </div>
+        <div class="baseinfo-main-container">
+            <div class="module" :class='{femail: authInfo.sex}'>
+                <h3 class="module-title">基本信息</h3>
+                <div class="module-content">
+                    <p class="content-row"><span class="content-title">昵称：</span>{{authInfo.nickname}}</p>
+                    <p class="content-row">
+                        <span class="content-title">性别：</span>
+                        <i class="fa fa-mars fa-lg" v-if='!authInfo.sex'></i>
+                        <i class="fa fa-venus" v-else></i>
+                    </p>
+                </div>
+            </div>
+            <div class="module" :class='{femail: authInfo.sex}'>
+                <h3 class="module-title">账号信息</h3>
+                <ul class="module-setting clearfix">
+                    <li class="setting-item fl">
+                        <i class="fa fa-envelope-o"></i><span>{{authInfo.email}} (绑定邮箱)</span>
+                    </li>
+                    <li class="setting-item fl">
+                        <i class="fa fa-lock"></i><span>密码不可见</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import Api from '../../api/index'
+    import { alert } from '../../lib/dialog'
+    import { SWITHC_USER_HEADER } from '../../vuex/types'
+
+    export default {
+        /* 只能看自己的个人信息 */
+        computed: {
+            authInfo () {
+                return this.$store.getters.getAuthInfo
+            }
+        },
+        methods: {
+            switchHeader () {
+                if (!FormData) {
+                    alert('该浏览器不支持这个功能，请升级浏览器或更换浏览器！')
+                    return
+                }
+                let formData = new FormData()
+                formData.append('header', this.$refs.header.files[0])
+                Api.uploadHeader(formData)
+                    .then((response) => {
+                        let result = response.data
+                        if (result.errno) {
+                            alert(result.errorMsg)
+                            return
+                        }
+                        this.$store.commit(SWITHC_USER_HEADER, result.url)
+                        alert('头像修改成功！')
+                    })
+            }
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .full-to-parent
+        position absolute
+        top 0
+        left 0
+        right 0
+        bottom 0
+    .baseinfo-header
+        padding-left 20px
+        line-height 40px
+        font-size 16px
+        background #f5f5f5
+        .fa
+            margin-right 10px
+    .baseinfo-thumb-container
+        margin 20px 0
+        text-align center
+        .thumb-show-upload
+            display inline-block
+            position relative
+            width 160px
+            height 160px
+            border 1px solid #f5f5f5
+            border-radius 100%
+            vertical-align middle
+            overflow hidden
+            .thumb-show
+                width 100%
+                height 100%
+            .thumb-upload
+                position absolute
+                left 0
+                right 0
+                bottom 0
+                height 40px
+                font-size 14px
+                color #f5f5f5
+                background rgba(0,0,0,.8)
+                transform translateY(100%)
+                .thumb-tips
+                    @extend .full-to-parent
+                    line-height 40px
+                    text-align center
+                    cursor pointer
+                .thumb-select
+                    display none
+            &:hover .thumb-upload
+                transform translateY(0)
+        .thumb-upload-tips
+            display inline-block
+            margin-left 50px
+            text-align left
+            color #999
+            transform translateY(30%)
+            .tip-item
+                line-height 20px
+    .module
+        margin-bottom 20px
+        font-size 14px
+        .module-title
+            line-height 30px
+            font-size 16px
+            font-weight 600
+        .module-content
+            margin-top 10px
+            padding-left 20px
+            .content-row
+                line-height 30px
+                .content-title
+                    margin-right 8px         
+        .module-setting
+            margin-top 20px
+            .setting-item
+                box-sizing border-box
+                width 50%
+                line-height 40px
+                padding-left 20px
+                margin-bottom 10px
+                .fa
+                    margin-right 10px
+                    line-height 40px
+                    font-size 20px
+                    vertical-align -1px
+                    &.fa-lock
+                        vertical-align -3px
+                        font-size 26px
+                .change-password
+                    margin-left 10px
+                    padding 0px 6px
+                    border 1px solid
+                    border-radius 3px
+        .fa
+            color #59bfff
+        &.femail .fa
+            color #ff5b7e
+</style>

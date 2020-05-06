@@ -1,0 +1,24 @@
+/* 首页piece模块 */
+export const STORE_NOTE_RESOURCE = 'STORE_NOTE_RESOURCE'
+
+export const SWITCH_PIECE_DATA = 'SWITCH_PIECE_DATA'
+
+export const SWITCH_PIECE_PERFORM = 'SWITCH_PIECE_PERFORM'
+
+export const SWITCH_PIECE_ONOFF = 'SWITCH_PIECE_ONOFF'
+
+export const INIT_PIECE_LIST = 'INIT_PIECE_LIST'
+
+export const SHOW_NOTIFY_MSG = 'SHOW_NOTIFY_MSG'
+
+/* 用户模块 */
+export const INIT_USER_TOKEN = 'INIT_USER_TOKEN'
+
+export const INIT_USER_AUTHINFO = 'INIT_USER_AUTHINFO'
+
+export const USER_LOGOUT = 'USER_LOGOUT'
+
+export const SWITHC_USER_HEADER = 'SWITHC_USER_HEADER'
+
+/* header组件未读信息数量 */
+export const SWITCH_MESSAGE_COUNT = 'SWITCH_MESSAGE_COUNT'

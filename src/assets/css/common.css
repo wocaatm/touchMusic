@@ -1,0 +1,237 @@
+.fl{
+    float:left;
+}
+
+.fr{
+    float:right;
+}
+
+.clearfix:after{
+    content: '';
+    display: table;
+    clear:both;
+}
+
+.container {
+    width:1200px;
+    margin:0 auto;
+}
+
+.single-ellipsis {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.scroll-fix-wrapper {
+    padding-left: calc(100vw - 100%);
+}
+
+.cursor__pointer {
+    cursor: pointer;
+}
+
+.user-select-disabled {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.full-to-parent-wrapper {
+    position: absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+}
+
+/* radio */
+label.radio-container {
+    display: inline-block;
+    height:20px;
+    line-height: normal;
+}
+
+label.radio-container .radio-input {
+    display: none;
+}
+
+label.radio-container .radio-core {
+    display: inline-block;
+    position: relative;
+    width: 20px;
+    height:20px;
+    border-radius: 100%;
+    box-sizing: border-box;
+    border:1px solid #ccc;
+    vertical-align: middle;
+}
+
+label.radio-container .radio-core:after {
+    content: "";
+    width:8px;
+    height:8px;
+    border-radius: 100%;
+    position: absolute;
+    top:5px;
+    left:5px;
+    background: #fff;
+    transition:transform 0.2s;
+    -webkit-transform: scale(0);
+    transform:scale(0);
+}
+
+label.radio-container .radio-input:checked + .radio-core {
+    background: #444;
+    border-color:#444;
+}
+
+label.radio-container .radio-input:checked + .radio-core:after {
+    -webkit-transform: scale(1);
+    transform:scale(1);
+}
+
+label.radio-container .radio-text {
+    vertical-align: middle;
+}
+
+/* 弹层样式 */
+.alert-container{
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    padding: 12px 18px;
+    background: rgba(0, 0, 0, .5);
+    color: #fff;
+    font-size: 14px;
+    z-index: 99;
+    transform: translate(-50%, -50%) scale(0);
+}
+
+.alert-container.enter {
+    transform: translate(-50%, -50%) scale(1);
+    transition: transform 0.2s cubic-bezier(.06,1.2,.69,1.17);
+}
+
+.alert-container.leave {
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.3s;
+}
+
+/* confirm弹层 */
+.confirm-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,.3);
+    z-index: 999;
+}
+
+.confirm-wrapper.gone {
+    background: transparent;
+}
+
+.confirm-wrapper .confirm-contaienr {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 260px;
+    max-width: 360px;
+    border-radius: 2px;
+    background: #fff;
+    box-shadow: 1px 1px 50px rgba(0,0,0,.3);
+    transform: translate(-50%, -50%) scale(0);
+}
+
+.confirm-wrapper .confirm-contaienr.enter {
+    transform: translate(-50%, -50%) scale(1);
+    transition: transform 0.3s cubic-bezier(.26,1.25,.96,1.22);
+}
+
+.confirm-wrapper .confirm-contaienr.leave {
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.3s;
+}
+
+.confirm-wrapper .confirm-title {
+    position: relative;
+    height: 42px;
+    padding-left: 20px;
+    border-bottom: 1px solid #eee;
+    border-radius: 2px 2px 0 0;
+    line-height: 42px;
+    font-size: 14px;
+    color: #333;
+    background-color: #F8F8F8;
+}
+
+.confirm-wrapper .close-btn {
+    position: absolute;
+    top: 50%;
+    right: 0px;
+    padding: 10px;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.confirm-wrapper .confirm-content {
+    padding: 20px;
+    font-size: 14px;
+    line-height: 24px;
+}
+
+.confirm-wrapper .confirm-opration {
+    padding: 0 15px 12px;
+}
+
+.confirm-wrapper .confirm-btn {
+    height: 28px;
+    line-height: 28px;
+    padding: 0 15px;
+    margin: 5px 5px 0;
+    border: 1px solid #dedede;
+    background-color: #fff;
+    color: #333;
+    border-radius: 2px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.confirm-wrapper .confirm-btn.confirm-btn-success {
+    background: #59bfff;
+    border-color: #59bfff;
+    color: #fff;
+}
+
+/*wangEditor 的样式不能重置*/
+
+.wangEditor-container ul{
+    list-style: disc;
+}
+
+.wangEditor-container ol {
+    list-style:decimal; 
+}
+
+.wangEditor-container li{
+    line-height: 1.8;
+}
+
+.wangEditor-container a{
+    text-decoration: none;
+    color:#2a6496;
+}
+
+.wangEditor-container a:hover{
+    text-decoration: underline;
+}
+
+/* 评论表情 */
+img.emoji {
+    margin: 0 6px;
+    vertical-align: -5px;
+}

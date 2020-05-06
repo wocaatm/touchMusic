@@ -1,0 +1,23 @@
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import Vue from 'vue'
+import './assets/css/reset.css'
+import './assets/css/common.css'
+import 'wangeditor/dist/css/wangEditor.min.css'
+import 'font-awesome/css/font-awesome.min.css'
+import router from './router'
+import store from './vuex/index'
+import filters from './filters'
+
+Vue.config.productionTip = false
+
+/* 全局过滤 */
+Object.keys(filters).forEach(k => {
+    Vue.filter(k, filters[k])
+})
+
+/* eslint-disable no-new */
+new Vue({
+    router,
+    store
+}).$mount('#app')

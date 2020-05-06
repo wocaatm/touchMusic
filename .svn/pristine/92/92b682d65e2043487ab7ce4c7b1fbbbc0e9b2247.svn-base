@@ -1,0 +1,377 @@
+<template>
+    <div id="slider-container">
+        <div class="article-module-container" v-if='type'>
+            <div class="module-container">
+                <h3 class="module-title-container">
+                    <span class="title-info">最热文章</span>
+                </h3>
+                <ul class="post-container post-article">
+                    <li class="post-item clearfix" v-for='article in recentArticleList'>
+                        <div class="post-item-thumb fl">
+                            <img class='item-thumb' :src="article.thumb" alt="">
+                            <div class="g-host-button">
+                                <router-link class='shadow-tip' :to="{name: 'article', params: {id: article._id}}">
+                                    <touch-ghost-button tip="read" className='post-item-thumb' :animation="{transition: 'all 0.3s 0.4s'}">
+                                    </touch-ghost-button>
+                                </router-link>
+                            </div>
+                        </div>
+                        <div class="post-item-info">
+                            <h3 class="item-info-title single-ellipsis"><router-link :to="{name: 'article', params: {id: article._id}}">{{article.title}}</router-link></h3>
+                            <p class="item-info-author">{{article.uid.nickname}}</p>
+                            <p class="item-info-time">{{article.created | getTimeStr}}</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="module-container">
+                <h3 class="module-title-container">
+                    <span class="title-info">标签分类</span>
+                </h3>
+                <ul class="label-container">
+                    <li class="label-item" v-for='tag in tags'>
+                        <router-link :to="{path:'/articles', query: {tag: tag.value}}">
+                            <span class="tag-value">{{tag.value}}</span>
+                            <span class="tag-count">({{tag.count}})</span>
+                        </router-link>
+                    </li>
+                </ul>
+            </div>
+            <div class="module-container">
+                <h3 class="module-title-container">
+                    <span class="title-info">文章归档</span>
+                </h3>
+                <ul class="archive-container article-archive-container">
+                    <li class="year-item" v-for="year in articleArchive">
+                        <p class="controller cursor__pointer"><i class="fa fa-caret-right fa-lg icon-arrow" @click='launchTab($event)'></i><router-link :to="{path: '/articles', query: {year: year[0]}}" class='archive-link'><span class="span-time">{{year[0]}}</span><span class="archive-count">({{year[1] | getArchiveNum}})</span></router-link>
+                        </p>
+                        <ul class="archive-month-container">
+                            <li v-for="month in year[1]">
+                                <p class="padding2 controller cursor__pointer" @click='launchTab($event)'><i class="fa fa-caret-right fa-lg icon-arrow"></i><span class="span-time">{{month[0]}}月</span><span class="archive-count">({{month[1].length}})</span></p>
+                                <ul class="archive-content-container padding3">
+                                    <li class="archive-content-item single-ellipsis" v-for="(article, index) in month[1]">
+                                        <router-link v-if='index < 6' :to="{name: 'article', params: {id: article.id}}" class='archive-link'>{{article.title}}</router-link>
+                                    </li>
+                                    <li class="archive-content-item single-ellipsis" v-if="month[1].length > 6" >
+                                        <router-link class='queryMore archive-link' :to="{path: '/articles', query: {year: year[0], month: month[0]}}">查看更多<i class="fa fa-angle-double-right fa-lg"></i></router-link>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="music-module-container" v-else>
+            <div class="module-container">
+                <h3 class="module-title-container">
+                    <span class="title-info">最热歌单</span>
+                </h3>
+                <ul class="post-container post-music">
+                    <li class="post-item clearfix" v-for='music in recentMusicList'>
+                        <div class="post-item-thumb square fl">
+                            <img class='item-thumb' :src="music.thumb" alt="">
+                            <div class="g-host-button">
+                                <router-link class='shadow-play' :to="{name: 'music', params: {id: music._id}}"><i class="fa fa-play fa-2x"></i></router-link>
+                            </div>
+                        </div>
+                        <div class="post-item-info square">
+                            <h3 class="item-info-title single-ellipsis"><router-link :to="{name: 'music', params: {id: music._id}}">{{music.name}}</router-link></h3>
+                            <p class="item-info-author">{{music.uid.nickname}}</p>
+                            <p class="item-info-time">{{music.created | getTimeStr}}</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="module-container">
+                <h3 class="module-title-container">
+                    <span class="title-info">歌单归档</span>
+                </h3>
+                <ul class="archive-container">
+                    <li class="year-item" v-for="year in musicArchive">
+                        <p class="controller cursor__pointer"><i class="fa fa-caret-right fa-lg icon-arrow" @click='launchTab($event)'></i><router-link :to="{path: '/musics', query: {year: year[0]}}" class='archive-link'><span class="span-time">{{year[0]}}</span><span class="archive-count">({{year[1] | getArchiveNum}})</span></router-link>
+                        </p>
+                        <ul class="archive-month-container">
+                            <li v-for="month in year[1]">
+                                <p class="padding2 controller cursor__pointer" @click='launchTab($event)'><i class="fa fa-caret-right fa-lg icon-arrow"></i><span class="span-time">{{month[0]}}月</span><span class="archive-count">({{month[1].length}})</span></p>
+                                <ul class="archive-content-container padding3">
+                                    <li class="archive-content-item single-ellipsis" v-for="(music, index) in month[1]">
+                                        <router-link v-if='index < 6' :to="{name: 'music', params: {id: music.id}}" class='archive-link'>{{music.title}}</router-link>
+                                    </li>
+                                    <li class="archive-content-item single-ellipsis" v-if="month[1].length > 6" >
+                                        <router-link class='queryMore archive-link' :to="{path: '/musics', query: {year: year[0], month: month[0]}}">查看更多<i class="fa fa-angle-double-right fa-lg"></i></router-link>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import touchGhostButton from './GhostButton.vue'
+    import { $, sessionStore, fmtDate } from '../lib/util'
+    import Api from '../api/index'
+    
+    export default {
+        data () {
+            return {
+                tags: [],
+                recentArticleList: [],
+                recentMusicList: [],
+                articleArchive: [],
+                musicArchive: [],
+                limit: 4
+            }
+        },
+        props: {
+            type: {
+                type: Number,
+                require: true
+            }
+        },
+        mounted () {
+            let sessionInfo = sessionStore('slider', null)
+            if (sessionInfo) {
+                let {tags, recentArticleList, recentMusicList, articleArchive, musicArchive} = sessionInfo
+                this.tags = tags
+                this.recentArticleList = recentArticleList
+                this.articleArchive = articleArchive
+                this.recentMusicList = recentMusicList
+                this.musicArchive = musicArchive
+            } else {
+                this.initSlider()
+            }
+        },
+        methods: {
+            async initSlider () {
+                let promises = []
+                promises.push(Api.getArticlesList({hot: true, limit: this.limit}))
+                promises.push(Api.getArticleTags())
+                promises.push(Api.getArticleArchive())
+                promises.push(Api.getMusicsList({hot: true, limit: this.limit}))
+                promises.push(Api.getMusicArchive())
+                let [articleR, articleT, articleA, musicR, musicA] = await Promise.all(promises).catch(err => { console.log(err) })
+                this.recentArticleList = articleR.data
+                this.tags = articleT.data
+                this.articleArchive = this.archive(articleA.data)
+                this.recentMusicList = musicR.data
+                this.musicArchive = this.archive(musicA.data)
+            },
+            launchTab (event) {
+                let ele = event.target
+                /* 找到控制器节点 */
+                while (ele.nodeName.toLowerCase() !== 'p') {
+                    ele = ele.parentNode
+                }
+                /* 对应的内容节点 */
+                let activeEle = ele.nextElementSibling.classList
+                let iconClassList = $('.fa', ele).classList
+                iconClassList.remove('fa-caret-right', 'fa-caret-down')
+                activeEle.toggle('active')
+                activeEle.contains('active') ? iconClassList.add('fa-caret-down') : iconClassList.add('fa-caret-right')
+            },
+            archive (archives) {
+                let result = []
+                archives.forEach(item => {
+                    let [year, month] = fmtDate(new Date(item.created), 'yyyy-M-dd').split('-')
+                    let archiveInfo = {id: item._id, title: item.title || item.name}
+                    let existYears = result.map(archiveYear => {
+                        return archiveYear[0]
+                    })
+                    let yearIndex = existYears.indexOf(parseInt(year))
+                    if (yearIndex !== -1) {
+                        let existMonth = result[yearIndex][1].map(archiveMonth => {
+                            return archiveMonth[0]
+                        })
+                        let monthIndex = existMonth.indexOf(parseInt(month))
+                        if (monthIndex !== -1) {
+                            let existArchive = result[yearIndex][1][monthIndex][1]
+                            existArchive.push(archiveInfo)
+                        } else {
+                            let resultTitle = [archiveInfo]
+                            let resultMonth = [parseInt(month), resultTitle]
+                            result[yearIndex][1].push(resultMonth)
+                        }
+                    } else {
+                        let resultTitle = [archiveInfo]
+                        let resultMonth = [parseInt(month), resultTitle]
+                        let resultYear = [parseInt(year), [resultMonth]]
+                        result.push(resultYear)
+                    }
+                })
+                return result
+            }
+        },
+        beforeDestroy () {
+            let sessionInfo = sessionStore('slider', null)
+            if (!sessionInfo) {
+                let info = {
+                    tags: this.tags,
+                    recentArticleList: this.recentArticleList,
+                    articleArchive: this.articleArchive,
+                    recentMusicList: this.recentMusicList,
+                    musicArchive: this.musicArchive
+                }
+                sessionStore('slider', info)
+            }
+        },
+        filters: {
+            getArchiveNum (archive) {
+                return archive.reduce(function (initValue, item) {
+                    return initValue + item[1].length
+                }, 0)
+            }
+        },
+        components: {
+            touchGhostButton
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .module-container
+        margin 10px 0 40px
+        padding 30px
+        padding-top 0
+        border 1px solid rgba(34,34,34,.1)
+        .module-title-container
+            text-align center
+            font-size 18px
+            font-weight 600
+            line-height 24px
+            color #222
+            transform translateY(-50%)
+            .title-info
+                padding 0 50px
+                text-align center
+                background #fff
+    .post-container
+        margin-top 6px
+        .post-item
+            margin-bottom 20px
+            &:last-child
+                margin-bottom 0
+            .post-item-thumb
+                position relative
+                width 100px
+                height 80px
+                overflow hidden
+                cursor pointer
+                .item-thumb
+                    width 100%
+                    height 100%
+                .g-host-button
+                    position absolute
+                    top 0
+                    left 0
+                    width 100%
+                    height 100%
+                    background rgba(0,0,0,.3)
+            .post-item-info
+                margin-left 120px
+                .item-info-title
+                    color #333
+                    font-size 14px
+                    font-weight normal
+                .item-info-author
+                    margin 10px 0
+                    color #666
+                .item-info-time
+                    color #999
+        &.post-article
+            .post-item-thumb
+                .g-host-button
+                    transform translateX(100%)
+                    .shadow-tip
+                        position absolute
+                        top 50%
+                        left 50%
+                        font-size 12px
+                        text-align center
+                        color #fff
+                        background transparent
+                        transform translate(-50%, -50%)
+                &:hover
+                    .g-host-button
+                        transition transform 0.4s
+                        transform translateX(0)
+        &.post-music
+            .post-item-thumb
+                width 80px
+                height 80px
+                .g-host-button
+                    z-index -1
+                    .shadow-play
+                        position absolute
+                        top 50%
+                        left 50%
+                        width 24px
+                        text-align center
+                        line-height 24px
+                        margin-top -12px
+                        margin-left -12px
+                        color #fff
+                        opacity 0
+                        transform scale(2)
+                &:hover
+                    .g-host-button
+                        z-index 1
+                        .shadow-play
+                            opacity 1
+                            transform scale(1)
+                            transition all 0.25s ease-out
+            .post-item-info
+                margin-left 100px
+    .label-container
+        margin-top 6px
+        .label-item
+            padding 7px 0
+            color #636363
+            font-size 14px
+            .tag-count
+                margin-left 12px
+            &:last-child
+                padding-bottom 0
+    .archive-container
+        marign-top 6px
+        line-height 30px
+        font-size 14px
+        color #777
+        .controller:hover
+            color #000
+        .padding2
+            padding-left 20px
+        .padding3
+            padding-left 46px
+        .span-time
+            margin 0 10px
+        .icon-arrow
+            width 16px
+            text-align center
+            font-size 12px
+            vertical-align middle
+        .archive-month-container
+            display none
+            &.active
+                display block
+        .archive-count
+            color #aaa
+            font-size 0.85em
+        .archive-content-container
+            display none
+            line-height 40px
+            .queryMore
+                text-decoration underline
+                .fa
+                    margin-left 10px
+            &.active
+                display block
+        .archive-link
+            color #777
+            &:hover
+                color #000
+</style>

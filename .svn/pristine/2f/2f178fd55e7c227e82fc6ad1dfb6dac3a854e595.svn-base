@@ -1,0 +1,62 @@
+import { INIT_USER_TOKEN, INIT_USER_AUTHINFO, USER_LOGOUT, SWITHC_USER_HEADER } from '../types'
+
+const tokenFromLocalStorage = function() {
+    let token = localStorage.getItem('user')
+    if (token) {
+        let payload = JSON.parse(window.atob(token.split('.')[1]))
+        if( payload.exp > Date.now() / 1000 ){
+            return localStorage.getItem('user')
+        }else{
+            clearLoginInfo()
+            return false
+        }
+    } else {
+        return false
+    }
+}
+
+const authInfoFromLocalStorage = function () {
+    if (localStorage.getItem('user')) {
+        let authInfo = localStorage.getItem('authInfo')
+        return authInfo ? JSON.parse(authInfo) : false
+    } else {
+        clearLoginInfo()
+        return false
+    }
+}
+
+const clearLoginInfo = function () {
+    localStorage.removeItem('user')
+    localStorage.removeItem('authInfo')
+}
+
+
+const state = {
+    token: tokenFromLocalStorage() || null,
+    info: authInfoFromLocalStorage() || null
+}
+
+const mutations = {
+    [INIT_USER_TOKEN] (state, token) {
+        localStorage.setItem('user', token)
+        state.token = token
+    },
+    [INIT_USER_AUTHINFO] (state, authInfo) {
+        localStorage.setItem('authInfo', JSON.stringify(authInfo))
+        state.info = authInfo
+    },
+    [USER_LOGOUT] (state) {
+        clearLoginInfo()
+        state.token = null
+        state.info = null
+    },
+    [SWITHC_USER_HEADER] (state, url) {
+        if (state.info.header) state.info.header = url
+        localStorage.setItem('authInfo', JSON.stringify(state.info))
+    }
+};
+
+export default {
+    state,
+    mutations
+}

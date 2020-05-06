@@ -1,0 +1,88 @@
+<template>
+    <div id="user-center">
+        <touch-header></touch-header>
+        <div class="scroll-fix-wrapper">
+            <div class="user-container container">
+                <div class="user-header-container clearfix">
+                    <div class="user-header-title fl">个人中心</div>
+                    <router-link :to="{path: '/'}" class='back-to-index fr'>返回首页</router-link>
+                </div>
+                <div class="user-main-container clearfix">
+                    <div class="user-center-nav fl">
+                        <ul>
+                            <li class="user-nav-item">
+                                <router-link :to="{path: '/user'}" class='nav-link'>
+                                    <i class="fa fa-user-circle-o nav-item-icon"></i><span class="nav-item-title">我的资料</span>
+                                </router-link>
+                            </li>
+                            <li class="user-nav-item">
+                                <router-link :to="{path: '/user/collect'}" class='nav-link'>
+                                    <i class="fa fa-heart-o nav-item-icon"></i><span class="nav-item-title">我的收藏</span>
+                                </router-link>
+                            </li>
+                            <li class="user-nav-item">
+                                <router-link :to="{path: '/user/message'}" class='nav-link'>
+                                    <i class="fa fa-envelope-o nav-item-icon"></i><span class="nav-item-title">我的消息</span>
+                                </router-link>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="user-content-container">
+                        <router-view></router-view>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import touchHeader from '../../components/header'
+
+    export default {
+        components: {
+            touchHeader
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .user-container
+        margin-top 60px
+        .user-header-container
+            height 50px
+            margin-bottom 20px
+            border-bottom 2px solid #ebebeb 
+            line-height 50px
+            .user-header-title
+                padding 0 10px
+                border-bottom 2px solid currentColor
+                font-size 30px
+                color #333
+            .back-to-index
+                padding-right 10px
+                color #909090
+        .user-center-nav
+            width 200px
+            overflow hidden
+            .user-nav-item
+                line-height 50px
+                border-bottom 1px solid #eee
+                .nav-link
+                    display block
+                    padding-left 30px
+                    color #666
+                    .nav-item-icon
+                        font-size 18px
+                        vertical-align -1px
+                    .nav-item-title
+                        margin-left 10px
+                        font-size 14px
+                    &:hover
+                        color #000
+                    &.router-link-exact-active
+                        color #fff
+                        background #333
+        .user-content-container
+            margin-left 220px
+</style>

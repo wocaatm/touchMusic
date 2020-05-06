@@ -1,0 +1,204 @@
+<template>
+    <div class="comment-container">
+        <div class="comment-header">
+            <span class="comment-header-count">{{count | splitComment(true)}}</span>
+            <span v-if='count > 9'>{{count | splitComment}}</span>
+            <span class="comment-header-title">条精彩评论</span>
+        </div>
+        <div v-if='comments.length || !loading'>
+            <ul class="comment-ul-container">
+                <li class="comment-item clearfix" v-for='(comment, index) in comments'>
+                    <div class="user-thumb fl">
+                        <img class='thumb' :src="comment.userInfo.header" alt="">
+                    </div>
+                    <div class="comment-item-content">
+                        <div class="first-level comment-level">
+                            <span class="nickname">{{comment.userInfo.nickname}}：</span>
+                            <span v-html='transformComment(comment.content)'></span>
+                        </div>
+                        <div class="second-level comment-level" v-if='comment.replyInfo'>
+                            <span class="nickname">@ {{comment.replyInfo.nickname}}：</span>
+                            <span v-html='transformComment(comment.replyInfo.content)'></span>
+                        </div>
+                        <div class="item-info clearfix">
+                            <div class="created fl">{{comment.created | getTimeStr('yyyy年MM月dd日 hh:mm')}}</div>
+                            <div class="opration fr">
+                                <div class="opration-up-down">
+                                    <i class="fa fa-thumbs-o-up fa-lg"></i>
+                                    <span class="up-count">({{comment.likeCount}})</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            <div class="load-tips" v-if='loading'><i class="fa fa-spinner fa-pulse"></i>正在加载中...</div>
+            <div class="load-tips" v-if='!hasMore && !loading'>已加载全部评论...</div>
+        </div>
+        <div class="no-comment" v-else>该歌曲在网易云中目前没有精彩评论...</div>
+    </div>
+</template>
+
+<script>
+    import { $, offsetDistance, scrollTop } from '../lib/util'
+    import { transformEmoji } from '../lib/emoji'
+    import Api from '../api/index'
+
+    export default {
+        data () {
+            return {
+                skip: 0,
+                loading: true,
+                comments: [],
+                hasMore: true,
+                count: 0
+            }
+        },
+        props: {
+            id: {
+                type: Number,
+                required: true
+            }
+        },
+        computed: {
+            loadOffsetTop () {
+                let offsetEle = $('.comment-item', document, true)[this.comments.length - 4]
+                return offsetDistance(offsetEle, 'offsetTop')
+            }
+        },
+        mounted () {
+            this.loadNetEaseComment(true)
+        },
+        methods: {
+            loadNetEaseComment (init) {
+                let data = {id: this.id}
+                if (!init) data.query = {offset: this.skip}
+                Api.getMusicNetComment(data)
+                    .then(response => {
+                        let result = response.data
+                        let comments = result.comments
+                        this.hasMore = result.more
+                        this.count = result.count
+                        if (init) {
+                            this.comments = comments
+                        } else {
+                            this.comments = this.comments.concat(comments)
+                        }
+                        this.skip += comments.length
+                        this.loading = false
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
+            },
+            loadMoreComment () {
+                if (this.loading || !this.hasMore) return
+                let offsetTop = scrollTop() + window.innerHeight
+                if (offsetTop >= this.loadOffsetTop) {
+                    this.loading = true
+                    this.loadNetEaseComment(false)
+                }
+            },
+            transformComment (comment) {
+                return transformEmoji(comment, true)
+            }
+        },
+        watch: {
+            id (to) {
+                if (to) {
+                    this.comments = []
+                    this.$nextTick(() => {
+                        this.loadNetEaseComment(true)
+                    })
+                }
+            },
+            comments (to, from) {
+                if (!from.length && this.hasMore) {
+                    this.$nextTick(() => {
+                        document.onscroll = this.loadMoreComment
+                    })
+                }
+            }
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .comment-container
+        margin 30px 0 20px
+        padding 0 15px
+        font-size 14px
+        color #333
+        .comment-header
+            display inline-block
+            position relative
+            margin-bottom 60px
+            padding 0 10px
+            font-size 18px
+            color #666
+            line-height 40px
+            background #eee
+            &:after
+                content ''
+                position absolute
+                bottom -10px
+                left 10px
+                width 0
+                height 0
+                border-top 10px solid #eee
+                border-right 20px solid transparent
+            .comment-header-count
+                display inline-block
+                transform rotate(-16deg)
+            .comment-header-title
+                margin-left 10px
+        .user-thumb
+            width 60px
+            height 60px
+            overflow hidden
+            .thumb
+                width 100%
+                height 100%
+        .comment-item
+            padding 20px 0 10px
+            border-bottom 1px dotted #ccc
+            .comment-item-content
+                margin-left 80px
+                .comment-level
+                    margin-bottom 8px
+                    line-height 1.75em
+                    padding 8px 10px
+                    .nickname
+                        color #5e8edd
+                .first-level
+                    padding-top 0
+                .second-level
+                    background #eee
+                    color #555
+                .item-info
+                    padding 8px 10px
+                    color #999
+                    cursor pointer
+                    .opration-up-down
+                        display inline-block
+                        margin-right 10px
+        .load-tips
+            line-height 50px
+            font-size 20px
+            text-align center
+            color #888
+            .fa
+                margin-right 8px
+        .no-comment
+            line-height 50px
+            text-align center
+            font-size 24px
+            color #888
+        .comment-more
+            border 2px solid currentColor
+            color #de4c4c
+            font-size 18px
+            font-weight 600
+            line-height 30px
+            text-align center
+</style>

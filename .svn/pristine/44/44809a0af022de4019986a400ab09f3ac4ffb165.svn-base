@@ -1,0 +1,31 @@
+import { getLastTimeStr } from './lib/util'
+
+var getTimeStr = (time, format, friendly) => {
+    if (format instanceof Boolean) {
+        friendly = format
+        format = ''
+    }
+    if (friendly) {
+        return getLastTimeStr(time, true)
+    } else {
+        return getLastTimeStr(time, format)
+    }
+}
+
+/* 评论数首位数字分割 */
+var splitComment = (count, max) => {
+    var countToString = count + ''
+    var numLength = countToString.length
+    if (numLength === 1) {
+        return max ? countToString : false
+    } else {
+        var maxNum = countToString[0]
+        var leftNum = countToString.slice(1)
+        return max ? maxNum : leftNum
+    }
+}
+
+export default {
+    getTimeStr,
+    splitComment
+}

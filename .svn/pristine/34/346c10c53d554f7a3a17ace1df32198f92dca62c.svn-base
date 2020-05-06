@@ -1,0 +1,147 @@
+<template>
+    <div id="article-detail">
+        <touch-header :tab='2'></touch-header>
+        <div class="scroll-fix-wrapper">
+            <div class="main-container container clearfix">
+                <div class="article-contianer fl">
+                    <div v-if='article'>
+                        <div class="article-content-container">
+                            <h3 class="title">{{article.title}}</h3>
+                            <div class="info-container">
+                                <div class="info-nickname">作者：{{article.uid.nickname}}</div>
+                                <div class="info-created">发表于：{{article.created | getTimeStr}}</div>
+                                <div class="info-tag"><i class="fa fa-tag icon"></i>{{article.tag}}</div>
+                                <div class="info-collect" @click='switchCollect()'>
+                                    <span v-if='!collect'><i class="fa fa-heart-o icon"></i>收藏</span>
+                                    <span v-else><i class="fa fa-heart icon"></i>已收藏</span>
+                                </div>
+                            </div>
+                            <div class="wangEditor-container">
+                                <div class="wangEditor-txt" v-html='article.content'></div>
+                            </div>
+                        </div>
+                        <touch-comment :id='id' :module="1"></touch-comment>
+                    </div>
+                    <div v-if='loaded && !article' class="not-exist-article">
+                        <i class="fa fa-file-o fa-4x"></i>
+                        <p class="not-exist-tip">该文章不存在~</p>
+                    </div>
+                </div>
+                <div class="slider-container fr">
+                    <touch-slider :type='1'></touch-slider>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import touchHeader from '../components/header.vue'
+    import touchSlider from '../components/slider.vue'
+    import touchComment from '../components/comment.vue'
+    import Api from '../api/index'
+    import { alert } from '../lib/dialog'
+
+    export default {
+        data () {
+            return {
+                id: '',
+                article: '',
+                collect: false,
+                loaded: false
+            }
+        },
+        computed: {
+            authInfo () {
+                return this.$store.getters.getAuthInfo
+            }
+        },
+        mounted () {
+            this.initArticleDetail()
+        },
+        methods: {
+            initArticleDetail () {
+                this.id = this.$route.params.id
+                Api.getArticle(this.id)
+                    .then(response => {
+                        this.loaded = true
+                        let {article, collect} = response.data
+                        this.article = article
+                        this.collect = collect
+                    })
+                    .catch(err => {
+                        console.log(err)
+                    })
+            },
+            switchCollect () {
+                if (!this.authInfo) {
+                    alert('请先登录！')
+                    return
+                }
+                Api.switchCollect({type: 1, id: this.id})
+                    .then(response => {
+                        let result = response.data
+                        this.collect = result.action === 'collect'
+                        if (this.collect) {
+                            /* 弹层插件 */
+                            alert('收藏成功')
+                        } else {
+                            alert('取消收藏成功')
+                        }
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
+            }
+        },
+        components: {
+            touchHeader,
+            touchSlider,
+            touchComment
+        },
+        watch: {
+            '$route' (to, from) {
+                this.initArticleDetail()
+            }
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .main-container
+        margin-top 60px
+        .article-contianer
+            width 840px
+            .title
+                padding 10px 0
+                font-size 28px
+                text-align center
+            .info-container
+                display flex
+                justify-content space-around
+                align-items center
+                padding 0 15px
+                font-size 16px
+                line-height 60px
+                margin-top 10px
+                .icon
+                    margin-right 8px
+                .info-collect
+                    width 100px
+                    color #de4c4c
+                    .fa
+                        cursor pointer
+            .wangEditor-container
+                border none
+            .not-exist-article
+                margin-top 200px
+                text-align center
+                font-size 16px
+                .fa
+                    color #ccc
+                .not-exist-tip
+                    margin-top 20px
+                    font-weight 500
+        .slider-container
+            width 320px
+</style>

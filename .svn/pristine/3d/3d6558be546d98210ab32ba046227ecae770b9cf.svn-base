@@ -1,0 +1,277 @@
+<template>
+    <div class="reg-container">
+        <touch-header></touch-header>
+        <div class="canvas-container" ref='regCanvas'>
+            <div class="form-container">
+                <div class="form-row">
+                    <input type="text" class="row-input" v-model='user.nickname' placeholder="昵 称">
+                    <ul class="row-tips">
+                        <li class="tip-item" :class='{pass: nicknamePass}'>长度4-13位</li>
+                    </ul>
+                </div>
+                <div class="form-row">
+                    <input type="text" class="row-input" v-model='user.email' placeholder="邮 箱">
+                    <ul class="row-tips">
+                        <li class="tip-item" :class='{pass:emailPass}'>格式不正确</li>
+                    </ul>
+                </div>
+                <div class="form-row">
+                    <input type="password" class="row-input" v-model='user.password' placeholder="密 码">
+                    <ul class="row-tips">
+                        <li class="tip-item" :class='{pass: passwordPass}'>长度6-16位</li>
+                    </ul>
+                </div>
+                <div class="form-row">
+                    <input type="password" class="row-input" v-model='user.passwordRepeat' placeholder="确认密码">
+                    <ul class="row-tips">
+                        <li class="tip-item" :class='{pass: passwordRepeatLengthPass}'>长度6-16</li>
+                        <li class="tip-item" :class='{pass: passwordRepeatPass}'>两次密码不相同</li>
+                    </ul>
+                </div>
+                <transition name='code'>
+                    <div class="form-row" v-if='emailPass'>
+                        <div class="verify-code-container">
+                            <input type="text" class="row-input" v-model='user.verifyCode' placeholder="邮箱验证码">
+                            <span class="get-email-code cursor__pointer" :class='{female: user.sex === 1}' @click='getVerifyCode()'>获取</span>
+                        </div>
+                        <ul class="row-tips">
+                            <li class="tip-item" :class='{pass: user.verifyCode.length}'>邮箱验证码不能为空</li>
+                        </ul>
+                    </div>
+                </transition>
+                <div class="sex-select">
+                    <span class="male sex" :class='{active:!user.sex}' @click='user.sex = 0'><i class="fa fa-mars fa-2x sex-icon"></i></span>
+                    <span class="female sex" :class='{active:user.sex}' @click='user.sex = 1'><i class="fa fa-venus fa-2x sex-icon"></i></span>
+                </div>
+                <div class="reg-submit">
+                    <span class="reg-btn" :class='{pass: submitPass, female: user.sex === 1}' @click='reg'>注册</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import '../lib/pixi.min'
+    import touchHeader from '../components/header.vue'
+    import Canvas from '../lib/login-reg-canvas'
+    import Api from '../api/index'
+    import { mapGetters } from 'vuex'
+
+    export default {
+        data () {
+            return {
+                user: {
+                    nickname: '',
+                    email: '',
+                    password: '',
+                    passwordRepeat: '',
+                    sex: 0,
+                    verifyCode: ''
+                },
+                canvas: null
+            }
+        },
+        computed: {
+            nicknamePass () {
+                return this.user.nickname.length >= 4 && this.user.nickname.length <= 13
+            },
+            emailPass () {
+                return /^(\w)+(\.\w+)*@(\w)+((\.\w+)+)$/.test(this.user.email)
+            },
+            passwordPass () {
+                return this.user.password.length >= 6 && this.user.password.length <= 16
+            },
+            passwordRepeatLengthPass () {
+                return this.user.passwordRepeat.length >= 6 && this.user.passwordRepeat.length <= 16
+            },
+            passwordRepeatPass () {
+                return this.user.password === this.user.passwordRepeat
+            },
+            submitPass () {
+                return this.nicknamePass && this.emailPass && this.passwordPass && this.passwordRepeatPass && this.user.verifyCode.length
+            },
+            ...mapGetters({
+                auth: 'getAuthInfo',
+                token: 'getToken'
+            })
+        },
+        mounted () {
+            if (this.auth && this.token) {
+                this.$router.push({name: 'userDefault'})
+                return
+            }
+            /* eslint-disable no-new */
+            this.canvas = new Canvas(this.$refs.regCanvas)
+        },
+        methods: {
+            getVerifyCode () {
+                if (this.emailPass) {
+                    Api.getVerifyCode({email: this.user.email})
+                        .then(response => {
+                            let result = response.data
+                            if (result.errno) {
+                                alert(result.errorMsg)
+                            } else {
+                                alert('邮件发送成功，请注意查收')
+                            }
+                        })
+                } else {
+                    alert('邮箱格式不正确')
+                }
+            },
+            async reg () {
+                if (this.submitPass) {
+                    let regResult = await this.$store.dispatch('userReg', this.user)
+                    if (regResult === true) {
+                        let authInfo = await this.$store.dispatch('authInfo')
+                        if (authInfo) {
+                            this.$router.push({path: '/index'})
+                        }
+                    } else {
+                        alert(regResult)
+                    }
+                }
+            }
+        },
+        beforeRouteLeave (to, from, next) {
+            if (this.canvas) this.canvas.destroy()
+            next()
+        },
+        components: {
+            touchHeader
+        }
+    }
+</script>
+
+<style lang='stylus'>
+    .reg-container
+        overflow hidden
+        .canvas-container
+            position relative
+            background #38404e url('/static/images/tile.png') 0 0 repeat
+            background-attachment fixed
+            .form-container
+                position absolute
+                top 50%
+                left 50%
+                transform translate(-50%,-50%)
+                background #fff
+                border-radius 8px
+                box-shadow 10px 10px 10px rgba(0,0,0,.6)
+                padding 20px 60px
+                overflow hidden
+                .form-row
+                    width 360px
+                    font-size 18px
+                    text-align center
+                    margin-bottom 10px
+                    .row-input
+                        width 260px
+                        padding 6px 0
+                        border-bottom 1px solid #000
+                        text-align center
+                        font-size 16px
+                        background transparent
+                    .row-tips
+                        position relative
+                        left 40%
+                        margin-top 8px
+                        font-size 12px
+                        list-style-type disc
+                        .tip-item
+                            text-align left
+                            padding 3px 0
+                            transition all 0.4s
+                            &.pass
+                                text-decoration line-through
+                                color #de4c4c
+                    .verify-code-container
+                        position relative
+                        width 260px
+                        margin 0 auto
+                        .get-email-code
+                            position absolute
+                            right 0
+                            top 2px
+                            padding 0 8px
+                            line-height 28px
+                            font-size 16px
+                            color #fff
+                            background #59bfff
+                            &.female
+                                background #ff5b7e
+                .sex-select
+                    margin 20px 0
+                    text-align center
+                    .sex
+                        display inline-block
+                        position relative
+                        background #ccc
+                        width 60px
+                        height 60px
+                        border-radius 30px
+                        cursor pointer
+                        color #333
+                        .sex-icon
+                            position absolute
+                            top 50%
+                            left 50%
+                            transform translate(-50%, -50%)
+                        &.male
+                            margin-right 100px
+                            &.active
+                                background #59bfff
+                                color #fff
+                        &.female.active
+                            background #ff5b7e
+                            color #fff
+                .reg-submit
+                    text-align center
+                    .reg-btn
+                        display inline-block
+                        width 120px
+                        text-align center
+                        line-height 40px
+                        font-size 15px
+                        color #fff
+                        border-radius 5px
+                        background #999
+                        cursor pointer
+                        transition all 0.4s
+                        transform-origin 50%,50%
+                        &:hover
+                            animation shark 500ms infinite
+                        &.pass
+                            background #59bfff
+                            &.female
+                                background #ff5b7e
+                            &:hover
+                                animation pass 500ms infinite
+    .code-enter-active, .code-leave-active
+        transition all .5s ease
+    .code-enter, .code-leave-active 
+        opacity 0
+        transform translateX(200%)
+
+    @keyframes shark {
+        0% {
+            transform: rotate(2deg)
+        }
+        50% {
+            transform: rotate(-3deg)
+        }
+        70% {
+            transform: rotate(3deg)
+        }
+        100% {
+            transform: rotate(0deg)
+        }
+    }
+
+    @keyframes pass {
+        50% {
+            transform: translateY(2px);
+        }
+    }
+</style>

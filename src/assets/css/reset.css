@@ -1,0 +1,38 @@
+body{
+    font-family:"Microsoft YaHei";
+    font-size: 12px;
+    user-select: none;
+    color:#333;
+}
+
+body,h1,h2,h3,h4,h5,h6,p,ul,ol,form,dl,dd,dt{
+    margin:0;
+}
+
+ul,ol{
+    padding-left:0;
+    list-style: none;
+}
+
+a{
+    text-decoration: none;
+    color:#333;
+}
+
+img{
+    border:none;
+    display: block;
+}
+
+img.inline{
+    display: inline-block;
+}
+
+input,select,textarea {
+    border:none;
+    outline: none;
+}
+
+canvas{
+    display: block
+}
